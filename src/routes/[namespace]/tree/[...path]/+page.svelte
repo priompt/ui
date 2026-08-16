@@ -1,14 +1,20 @@
 <script lang="ts">
-	import { page } from '$app/state';
+	import BreadcrumbNav from '$lib/components/namespace/BreadcrumbNav.svelte';
+	import FileTable from '$lib/components/namespace/FileTable.svelte';
 
-	const path = $derived(page.params.path);
+	let { data } = $props();
 </script>
 
 <svelte:head>
-	<title>{path} — Priompt</title>
+	<title>{data.folderPath || data.namespace} — Priompt</title>
 </svelte:head>
 
-<div class="py-4">
-	<p class="text-muted-foreground">Tree view for: <code class="text-foreground">{path}</code></p>
-	<!-- TODO: Implement subfolder tree view in Phase 3 -->
+<div class="space-y-4">
+	<BreadcrumbNav
+		namespace={data.namespace}
+		branch={data.branch}
+		pathSegments={data.pathSegments}
+	/>
+
+	<FileTable files={data.files} namespace={data.namespace} branch={data.branch} />
 </div>
