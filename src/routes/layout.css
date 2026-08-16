@@ -43,37 +43,37 @@
 }
 
 .dark {
-	--background: oklch(0.145 0 0);
-	--foreground: oklch(0.985 0 0);
-	--card: oklch(0.205 0 0);
-	--card-foreground: oklch(0.985 0 0);
-	--popover: oklch(0.205 0 0);
-	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.922 0 0);
-	--primary-foreground: oklch(0.205 0 0);
-	--secondary: oklch(0.269 0 0);
-	--secondary-foreground: oklch(0.985 0 0);
-	--muted: oklch(0.269 0 0);
-	--muted-foreground: oklch(0.708 0 0);
-	--accent: oklch(0.269 0 0);
-	--accent-foreground: oklch(0.985 0 0);
+	--background: #010409;
+	--foreground: #e6edf3;
+	--card: #0d1117;
+	--card-foreground: #e6edf3;
+	--popover: #161b22;
+	--popover-foreground: #e6edf3;
+	--primary: #e6edf3;
+	--primary-foreground: #010409;
+	--secondary: #161b22;
+	--secondary-foreground: #e6edf3;
+	--muted: #161b22;
+	--muted-foreground: #7d8590;
+	--accent: #161b22;
+	--accent-foreground: #e6edf3;
 	--destructive: oklch(0.704 0.191 22.216);
-	--border: oklch(1 0 0 / 10%);
-	--input: oklch(1 0 0 / 15%);
-	--ring: oklch(0.556 0 0);
+	--border: #21262d;
+	--input: #21262d;
+	--ring: #388bfd;
 	--chart-1: oklch(0.87 0 0);
 	--chart-2: oklch(0.556 0 0);
 	--chart-3: oklch(0.439 0 0);
 	--chart-4: oklch(0.371 0 0);
 	--chart-5: oklch(0.269 0 0);
-	--sidebar: oklch(0.205 0 0);
-	--sidebar-foreground: oklch(0.985 0 0);
-	--sidebar-primary: oklch(0.488 0.243 264.376);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.269 0 0);
-	--sidebar-accent-foreground: oklch(0.985 0 0);
-	--sidebar-border: oklch(1 0 0 / 10%);
-	--sidebar-ring: oklch(0.556 0 0);
+	--sidebar: #010409;
+	--sidebar-foreground: #e6edf3;
+	--sidebar-primary: #388bfd;
+	--sidebar-primary-foreground: #e6edf3;
+	--sidebar-accent: #161b22;
+	--sidebar-accent-foreground: #e6edf3;
+	--sidebar-border: #21262d;
+	--sidebar-ring: #388bfd;
 }
 
 @theme inline {
@@ -128,4 +128,30 @@
 	html {
 		@apply font-sans;
 	}
+}
+
+/* Priompt custom tokens */
+:root {
+	--header-bg: #010409;
+	--sidebar-bg: #010409;
+	--table-border: #21262d;
+	--table-row-hover: #161b22;
+	--serving-green: #3fb950;
+	--link-blue: #58a6ff;
+	--link-blue-hover: #79c0ff;
+}
+
+.dark {
+	--header-bg: #010409;
+	--sidebar-bg: #010409;
+}
+
+@theme inline {
+	--color-header-bg: var(--header-bg);
+	--color-sidebar-bg: var(--sidebar-bg);
+	--color-table-border: var(--table-border);
+	--color-table-row-hover: var(--table-row-hover);
+	--color-serving-green: var(--serving-green);
+	--color-link-blue: var(--link-blue);
+	--color-link-blue-hover: var(--link-blue-hover);
 }
