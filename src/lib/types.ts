@@ -65,3 +65,34 @@ export interface RecentItem {
 	path: string;
 	icon?: string;
 }
+
+export interface FileDiff {
+	path: string;
+	diff: string;
+}
+
+export interface ComparisonSummary {
+	commitsAhead: number;
+	commitsBehind: number;
+	filesChanged: number;
+	fileDiffs: FileDiff[];
+}
+
+export interface Settings {
+	serverUrl: string;
+	defaultNamespace: string;
+	theme: 'dark' | 'light';
+}
+
+export interface BreadcrumbItem {
+	label: string;
+	href?: string;
+	isOverflow?: boolean;
+}
+
+export interface DiffLine {
+	type: 'added' | 'removed' | 'context' | 'header';
+	content: string;
+	oldLineNum?: number;
+	newLineNum?: number;
+}
