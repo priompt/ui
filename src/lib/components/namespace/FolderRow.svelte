@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { Folder, MoreHorizontal } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
@@ -6,52 +7,49 @@
 
 	interface Props {
 		file: PromptFile;
+		namespace?: string;
+		branch?: string;
 	}
 
-	let { file }: Props = $props();
+	let { file, namespace = '', branch = '' }: Props = $props();
 </script>
 
-<div class="group grid grid-cols-[1fr_1fr_auto_auto] items-center gap-4 border-b border-table-border px-4 py-3 transition-colors hover:bg-table-row-hover last:border-b-0">
-	<!-- Name column -->
-	<div class="flex items-center gap-3">
-		<Folder class="h-5 w-5 shrink-0 text-muted-foreground" />
-		<div class="min-w-0">
-			<a href="/{file.path}" class="text-sm font-medium text-link-blue hover:underline">
-				{file.name}
-			</a>
-			{#if file.promptCount}
-				<p class="text-xs text-muted-foreground">{file.promptCount} prompts</p>
-			{/if}
-		</div>
+<div class="group flex items-center gap-4 border-b border-border px-4 py-2 transition-colors hover:bg-[#1c2128] last:border-b-0">
+	<!-- Icon + Name -->
+	<div class="flex items-center gap-3 w-65 shrink-0">
+		<Folder class="h-4 w-4 shrink-0 text-muted-foreground" />
+		<a href="/{namespace}/tree/{branch}/{file.path}" class="text-sm text-link-blue hover:underline">
+			{file.name}
+		</a>
+		{#if file.promptCount}
+			<span class="text-xs text-muted-foreground">{file.promptCount}</span>
+		{/if}
 	</div>
 
-	<!-- Last commit column -->
-	<div class="min-w-0 text-sm text-muted-foreground">
-		<p class="truncate">{file.lastCommit.message}</p>
-		<p class="truncate text-xs">
-			<span class="font-mono text-link-blue/80">{file.lastCommit.hash}</span>
-			<span class="mx-1">·</span>
-			<span>{file.lastCommit.author}</span>
-		</p>
+	<!-- Commit message -->
+	<div class="flex-1 min-w-0">
+		<a href="/{namespace}/commit/{file.lastCommit.hash}" class="truncate block text-sm text-muted-foreground hover:text-link-blue hover:underline">
+			{file.lastCommit.message}
+		</a>
 	</div>
 
-	<!-- Updated column -->
-	<span class="w-24 text-right text-xs text-muted-foreground">{file.updatedAt}</span>
+	<!-- Relative time -->
+	<span class="text-xs text-muted-foreground shrink-0 w-24 text-right">{file.updatedAt}</span>
 
-	<!-- Actions -->
+	<!-- Overflow menu -->
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger>
 			<Button
 				variant="ghost"
 				size="icon"
-				class="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
+				class="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
 			>
-				<MoreHorizontal class="h-4 w-4" />
+				<MoreHorizontal class="h-3.5 w-3.5" />
 			</Button>
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content align="end">
-			<DropdownMenu.Item>Open</DropdownMenu.Item>
-			<DropdownMenu.Item>Copy path</DropdownMenu.Item>
+			<DropdownMenu.Item onSelect={() => goto(`/${namespace}/tree/${branch}/${file.path}`)}>Open</DropdownMenu.Item>
+			<DropdownMenu.Item onSelect={() => navigator.clipboard.writeText(file.path)}>Copy path</DropdownMenu.Item>
 			<DropdownMenu.Separator />
 			<DropdownMenu.Item class="text-destructive">Delete</DropdownMenu.Item>
 		</DropdownMenu.Content>

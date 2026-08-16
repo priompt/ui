@@ -6,9 +6,11 @@
 
 	interface Props {
 		commit: CommitSummary;
+		namespace?: string;
+		branch?: string;
 	}
 
-	let { commit }: Props = $props();
+	let { commit, namespace = '', branch = '' }: Props = $props();
 </script>
 
 <div class="mt-4 flex items-center justify-between rounded-lg border border-table-border bg-card/30 px-4 py-3">
@@ -31,7 +33,7 @@
 			<p class="text-xs text-muted-foreground">Latest commit</p>
 			<p class="font-mono text-xs text-link-blue">{commit.hash}</p>
 		</div>
-		<Button variant="outline" size="sm" class="h-8 gap-1.5">
+		<Button variant="outline" size="sm" class="h-8 gap-1.5" href="/{namespace}/commits/{branch}">
 			<History class="h-3.5 w-3.5" />
 			View history
 		</Button>

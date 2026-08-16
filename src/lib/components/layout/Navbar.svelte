@@ -6,6 +6,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Kbd } from '$lib/components/ui/kbd';
 	import SearchDialog from './SearchDialog.svelte';
+	import { toggleSidebar } from '$lib/stores/mobile-sidebar.svelte';
 
 	let searchOpen = $state(false);
 </script>
@@ -14,15 +15,21 @@
 	onkeydown={(e) => {
 		if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
 			e.preventDefault();
-			searchOpen = true;
+			searchOpen = !searchOpen;
 		}
 	}}
 />
 
-<header class="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-[#0D1117] px-4">
+<header class="sticky top-0 z-50 flex h-14 items-center justify-between border-b border-border bg-[#010409] px-4">
 	<!-- Left section: hamburger + logo -->
 	<div class="flex items-center gap-4">
-		<Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
+		<Button
+			variant="ghost"
+			size="icon"
+			class="h-11 w-11 min-h-11 min-w-11 text-muted-foreground hover:text-foreground md:h-8 md:w-8 md:min-h-0 md:min-w-0"
+			onclick={toggleSidebar}
+			aria-label="Toggle sidebar menu"
+		>
 			<Menu class="h-4 w-4" />
 		</Button>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { Code, History, GitBranch, Settings } from '@lucide/svelte';
+	import { FileText, History, GitBranch, Settings } from '@lucide/svelte';
 
 	interface Props {
 		namespace: string;
@@ -9,7 +9,7 @@
 	let { namespace }: Props = $props();
 
 	const tabs = $derived([
-		{ id: 'code', label: 'Code', icon: Code, href: `/${namespace}` },
+		{ id: 'code', label: 'Prompts', icon: FileText, href: `/${namespace}` },
 		{ id: 'history', label: 'History', icon: History, href: `/${namespace}/commits/main` },
 		{ id: 'branches', label: 'Branches', icon: GitBranch, href: `/${namespace}/branches` },
 		{ id: 'settings', label: 'Settings', icon: Settings, href: `/${namespace}/settings` }
@@ -17,8 +17,8 @@
 
 	const activeTab = $derived(() => {
 		const path = page.url.pathname;
-		if (path.includes('/commits')) return 'history';
-		if (path.includes('/branches')) return 'branches';
+		if (path.includes('/commits') || path.includes('/commit/')) return 'history';
+		if (path.includes('/branches') || path.includes('/compare/')) return 'branches';
 		if (path.includes('/settings')) return 'settings';
 		return 'code';
 	});

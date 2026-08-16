@@ -2,10 +2,16 @@
 	import { Plus, Upload, MoreHorizontal } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+
+	interface Props {
+		namespace?: string;
+	}
+
+	let { namespace = '' }: Props = $props();
 </script>
 
 <div class="flex items-center gap-2">
-	<Button variant="outline" size="sm" class="h-8 gap-1.5">
+	<Button variant="outline" size="sm" class="h-8 gap-1.5" href="/{namespace}/new">
 		<Plus class="h-3.5 w-3.5" />
 		New prompt
 	</Button>

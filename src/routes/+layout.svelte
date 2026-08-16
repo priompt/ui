@@ -10,7 +10,7 @@
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 <Tooltip.Provider>
-	<div class="flex min-h-screen flex-col bg-background">
+	<div class="flex min-h-screen flex-col overflow-x-hidden bg-background">
 		<Navbar />
 		{@render children()}
 	</div>

@@ -7,9 +7,10 @@
 	interface Props {
 		branches: Branch[];
 		current: string;
+		onSelect?: (branchName: string) => void;
 	}
 
-	let { branches, current = $bindable() }: Props = $props();
+	let { branches, current = $bindable(), onSelect }: Props = $props();
 </script>
 
 <DropdownMenu.Root>
@@ -27,6 +28,7 @@
 			<DropdownMenu.Item
 				onSelect={() => {
 					current = branch.name;
+					onSelect?.(branch.name);
 				}}
 			>
 				<div class="flex w-full items-center justify-between">
