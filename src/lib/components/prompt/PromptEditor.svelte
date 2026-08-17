@@ -67,7 +67,7 @@
         <ul class="space-y-1">
           {#each detectedSlots as slot}
             <li>
-              <code class="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">{`{{${slot}}}`}</code>
+              <code class="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">{`{${slot}}`}</code>
             </li>
           {/each}
         </ul>

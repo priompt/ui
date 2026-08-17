@@ -5,7 +5,11 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	server: {
-		host: '127.0.0.1'
+		host: '127.0.0.1',
+		// Fixed port: without strictPort vite silently walks to 5174/5175/… when
+		// something else holds 5173, and the dev URL moves on every restart.
+		port: 5180,
+		strictPort: true
 	},
 	plugins: [
 		tailwindcss(),

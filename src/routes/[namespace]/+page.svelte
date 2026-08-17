@@ -5,11 +5,13 @@
 	import ServingBadge from '$lib/components/namespace/ServingBadge.svelte';
 	import ActionBar from '$lib/components/namespace/ActionBar.svelte';
 	import FileTable from '$lib/components/namespace/FileTable.svelte';
-	import { mockAcmeFiles, mockBranches } from '$lib/mocks';
+	let { data } = $props();
 
 	const namespace = $derived(page.params.namespace);
-	const currentBranch = $derived(mockBranches.find((b) => b.isDefault)!);
-	const latestCommit = $derived(mockAcmeFiles[1].lastCommit);
+	const currentBranch = $derived(data.branches.find((b) => b.isDefault) ?? data.branches[0]);
+	const latestCommit = $derived(
+		data.files.find((f) => f.lastCommit.hash)?.lastCommit ?? currentBranch.lastCommit
+	);
 
 	function handleBranchSelect(branchName: string) {
 		goto(`/${namespace}/tree/${branchName}`);
@@ -23,11 +25,11 @@
 <!-- Branch selector + serving badge + actions -->
 <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
 	<div class="flex items-center gap-3">
-		<BranchSelector branches={mockBranches} current={currentBranch.name} onSelect={handleBranchSelect} />
+		<BranchSelector branches={data.branches} current={currentBranch.name} onSelect={handleBranchSelect} />
 		<ServingBadge serving={currentBranch.isServing} />
 	</div>
 	<ActionBar namespace={namespace} />
 </div>
 
 <!-- File table with integrated commit header -->
-<FileTable files={mockAcmeFiles} namespace={namespace} branch={currentBranch.name} latestCommit={latestCommit} />
+<FileTable files={data.files} namespace={namespace} branch={currentBranch.name} latestCommit={latestCommit} />

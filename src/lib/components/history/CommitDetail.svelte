@@ -43,7 +43,7 @@
   <div class="mb-6 flex gap-3 rounded-md bg-muted/40 px-4 py-3">
     <Sparkles class="h-4 w-4 shrink-0 text-blue-400 mt-0.5" />
     <div>
-      <span class="text-xs font-medium text-blue-400 uppercase tracking-wide">AI Summary</span>
+      <span class="text-xs font-medium text-blue-400 uppercase tracking-wide">Semantic diff</span>
       <p class="mt-1 text-sm text-foreground/90 leading-relaxed">{commit.semanticVerdict}</p>
     </div>
   </div>

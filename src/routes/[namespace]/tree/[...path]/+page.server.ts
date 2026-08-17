@@ -1,22 +1,23 @@
 import { error, redirect } from '@sveltejs/kit';
-import type { PageLoad } from './$types';
+import type { PageServerLoad } from './$types';
 import { parseBranchAndPath } from '$lib/utils/path';
-import { mockBranches, mockAcmeFiles, mockFolderContents } from '$lib/mocks/data';
+import { listBranches, listTree } from '$lib/server/priompt';
 
-export const load: PageLoad = ({ params }) => {
+export const load: PageServerLoad = async ({ params }) => {
 	if (!params.path) {
 		throw redirect(307, `/${params.namespace}/tree/main`);
 	}
 
-	const { branch, folderPath } = parseBranchAndPath(params.path, mockBranches);
+	const branches = await listBranches(params.namespace);
+	const { branch, folderPath } = parseBranchAndPath(params.path, branches);
 
 	if (!branch) {
 		throw error(404, 'Branch not found');
 	}
 
-	const files = folderPath === '' ? mockAcmeFiles : mockFolderContents[folderPath];
+	const files = await listTree(params.namespace, folderPath);
 
-	if (!files) {
+	if (files.length === 0 && folderPath !== '') {
 		throw error(404, 'Folder not found');
 	}
 
@@ -26,6 +27,6 @@ export const load: PageLoad = ({ params }) => {
 		folderPath,
 		files,
 		pathSegments: folderPath ? folderPath.split('/') : [],
-		branches: mockBranches
+		branches
 	};
 };

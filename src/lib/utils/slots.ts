@@ -1,4 +1,6 @@
-const SLOT_REGEX = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
+// Must stay in step with proto/validate/validate.go, which is what actually
+// accepts or rejects a publish: single braces, \w+.
+const SLOT_REGEX = /\{(\w+)\}/g;
 
 export function detectSlots(content: string): string[] {
 	const seen = new Set<string>();

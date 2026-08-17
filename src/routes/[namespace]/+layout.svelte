@@ -5,7 +5,7 @@
 
 	let { children } = $props();
 
-	const namespace = $derived(page.params.namespace);
+	const namespace = $derived(page.params.namespace ?? '');
 </script>
 
 <div class="mx-auto w-full max-w-6xl px-6 py-6">

@@ -3,33 +3,20 @@
   import CommitForm from '$lib/components/prompt/CommitForm.svelte';
   import { Button } from '$lib/components/ui/button';
   import { Save } from '@lucide/svelte';
-  import { goto } from '$app/navigation';
-  import { mockPromptContents, mockCommits } from '$lib/mocks/data';
 
-  let { data } = $props();
+  let { data, form } = $props();
   let content = $state(data.content);
   let showCommitDialog = $state(false);
+  let commitMessage = $state('');
+  let commitBranch = $state(data.branch);
+  let publishForm: HTMLFormElement;
 
+  // ponytail: hidden native form submit. Swap for use:enhance when the dialog
+  // needs to stay open and show server-side validation inline.
   function handleCommit(commitData: { message: string; description: string; branch: string }) {
-    // Update mock data in memory
-    if (mockPromptContents[data.filePath]) {
-      mockPromptContents[data.filePath].content = content;
-    }
-
-    // Add new commit
-    mockCommits.unshift({
-      hash: Math.random().toString(36).slice(2, 9),
-      message: commitData.message,
-      author: 'You',
-      authorAvatar: undefined,
-      date: new Date().toISOString(),
-      files: [data.filePath],
-      diff: undefined,
-      semanticVerdict: undefined
-    });
-
-    // Navigate to blob view
-    goto(`/${data.namespace}/blob/${commitData.branch}/${data.filePath}`);
+    commitMessage = commitData.message;
+    commitBranch = commitData.branch;
+    publishForm.requestSubmit();
   }
 </script>
 
@@ -49,12 +36,24 @@
     </Button>
   </div>
 
+  {#if form?.message}
+    <p class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-foreground">
+      Server rejected the publish: {form.message}
+    </p>
+  {/if}
+
   <PromptEditor
     initialContent={data.content}
     fileName={data.fileName}
     bind:content
   />
 </div>
+
+<form method="POST" action="?/publish" bind:this={publishForm} class="hidden">
+  <input type="hidden" name="content" value={content} />
+  <input type="hidden" name="message" value={commitMessage} />
+  <input type="hidden" name="branch" value={commitBranch} />
+</form>
 
 <!-- Commit dialog -->
 <CommitForm
