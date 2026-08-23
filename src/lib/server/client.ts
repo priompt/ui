@@ -26,6 +26,16 @@ export interface PriomptConfig {
 	host: string;
 	token: string;
 	tls: boolean;
+	/**
+	 * The org this deployment is scoped to, when the token is org-scoped.
+	 *
+	 * A scoped token may not list with an empty prefix — an empty prefix means
+	 * "everything", and the server is right to refuse it. But the dashboard
+	 * enumerates namespaces by doing exactly that, so without this the UI is
+	 * unusable with the credential production is supposed to use. The server has
+	 * no "who am I" RPC to ask, so the org is configuration.
+	 */
+	org: string;
 }
 
 /**
@@ -38,6 +48,7 @@ export function readConfig(): PriomptConfig | null {
 	let host = env.PRIOMPT_HOST ?? '';
 	let token = env.PRIOMPT_TOKEN ?? '';
 	let tls = env.PRIOMPT_TLS === 'true';
+	const org = (env.PRIOMPT_ORG ?? '').trim();
 
 	const url = env.PRIOMPT_URL;
 	if (url) {
@@ -51,7 +62,7 @@ export function readConfig(): PriomptConfig | null {
 		}
 	}
 	if (!host) return null;
-	return { host, token, tls };
+	return { host, token, tls, org };
 }
 
 /** Whether a Priompt server is configured. The UI falls back to fixtures if not. */

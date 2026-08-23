@@ -4,6 +4,7 @@ import { parseCompareSpec } from '$lib/utils/path';
 import { mockBranches, mockComparisons } from '$lib/mocks/data';
 import { compareBranches, getPrompt, KNOWN_BRANCHES } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
+import { httpStatus } from '$lib/server/source';
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	const spec = parseCompareSpec(params.spec);
@@ -72,6 +73,6 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		};
 	} catch (e) {
 		const err = e as PriomptError;
-		throw error(err.code === 'permission_denied' ? 403 : 404, err.message);
+		throw error(httpStatus(err), err.message);
 	}
 };

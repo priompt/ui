@@ -5,7 +5,7 @@ import { detectSlots } from '$lib/utils/slots';
 import { mockBranches, mockPromptContents } from '$lib/mocks/data';
 import { getPrompt } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
-import { splitRef } from '$lib/server/source';
+import { splitRef, httpStatus } from '$lib/server/source';
 
 export const load: PageServerLoad = async ({ params }) => {
 	if (!isLive()) {
@@ -49,6 +49,6 @@ export const load: PageServerLoad = async ({ params }) => {
 		};
 	} catch (e) {
 		const err = e as PriomptError;
-		throw error(err.code === 'permission_denied' ? 403 : 404, err.message);
+		throw error(httpStatus(err), err.message);
 	}
 };

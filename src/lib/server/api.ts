@@ -83,8 +83,10 @@ export async function listAll(prefix = ''): Promise<WireEntry[]> {
  * Namespaces are the distinct first path segments — the orgs. A scoped token
  * sees exactly one; an admin token sees every org it has prompts in.
  */
-export async function listNamespaces(): Promise<Namespace[]> {
-	const entries = await listAll('');
+export async function listNamespaces(org = ''): Promise<Namespace[]> {
+	// A scoped token cannot list with an empty prefix, and should not be able to:
+	// empty means everything. Ask for its own org instead when we know it.
+	const entries = await listAll(org ? `${SCHEME}${org}/` : '');
 	const counts = new Map<string, number>();
 	for (const e of entries) {
 		const { namespace } = fromURI(e.uri);

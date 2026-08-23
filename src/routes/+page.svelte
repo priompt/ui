@@ -19,7 +19,13 @@
 	<main class="flex flex-1 flex-col px-8 pt-8">
 		<h1 class="mb-6 text-2xl font-normal text-foreground">Namespaces</h1>
 
-		{#if data.error}
+		{#if data.scopedHint}
+			<p role="status" class="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+				This token is scoped to a single org, so it cannot list every namespace —
+				which is correct. Set <code class="font-mono">PRIOMPT_ORG</code> to that org
+				and this page will show it.
+			</p>
+		{:else if data.error}
 			<p role="alert" class="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
 				Could not reach the Priompt server — {data.error}
 			</p>
