@@ -2,7 +2,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { Button } from '$lib/components/ui/button';
-  import { detectSlots } from '$lib/utils/slots';
+  import { detectSlots, validateTemplate } from '$lib/utils/slots';
   import { mockBranches, mockPromptContents, mockFolderContents, mockCommits } from '$lib/mocks';
   import { Tag } from '@lucide/svelte';
 
@@ -36,6 +36,14 @@
 
     if (!commitMessage.trim()) {
       error = 'Commit message is required';
+      return;
+    }
+
+    // The same rules the server enforces, so the form refuses what a publish
+    // would refuse rather than creating an invalid prompt.
+    const invalid = validateTemplate(content);
+    if (invalid) {
+      error = invalid;
       return;
     }
 
@@ -138,7 +146,7 @@
             bind:value={content}
             class="flex-1 resize-none bg-transparent p-3 font-mono text-sm text-foreground leading-6 outline-none"
             rows={Math.max(lineCount + 2, 15)}
-            placeholder={"Enter your prompt content here... Use {{slot_name}} for template variables."}
+            placeholder={"Enter your prompt content here... Use {slot_name} for template variables."}
             spellcheck="false"
           ></textarea>
         </div>

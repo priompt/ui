@@ -45,7 +45,9 @@
     <div
       class="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-lg"
       onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
       role="dialog"
+      tabindex="-1"
       aria-modal="true"
       aria-labelledby="commit-dialog-title"
     >

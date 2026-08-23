@@ -193,6 +193,7 @@
             class="relative h-5 w-9 rounded-full transition-colors {protectMain ? 'bg-green-500' : 'bg-muted-foreground/30'}"
             role="switch"
             aria-checked={protectMain}
+            aria-label="Protect default branch"
           >
             <span class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform {protectMain ? 'translate-x-4' : ''}"></span>
           </button>
@@ -211,6 +212,7 @@
             class="relative h-5 w-9 rounded-full transition-colors {requireReviews ? 'bg-green-500' : 'bg-muted-foreground/30'}"
             role="switch"
             aria-checked={requireReviews}
+            aria-label="Require pull request reviews"
           >
             <span class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform {requireReviews ? 'translate-x-4' : ''}"></span>
           </button>
@@ -280,6 +282,7 @@
             class="relative h-5 w-9 rounded-full transition-colors {autoServe ? 'bg-green-500' : 'bg-muted-foreground/30'}"
             role="switch"
             aria-checked={autoServe}
+            aria-label="Auto-deploy on merge"
           >
             <span class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform {autoServe ? 'translate-x-4' : ''}"></span>
           </button>
@@ -382,6 +385,7 @@
             class="relative h-5 w-9 rounded-full transition-colors {allowForks ? 'bg-green-500' : 'bg-muted-foreground/30'}"
             role="switch"
             aria-checked={allowForks}
+            aria-label="Allow forking"
           >
             <span class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform {allowForks ? 'translate-x-4' : ''}"></span>
           </button>
@@ -416,6 +420,7 @@
             class="relative h-5 w-9 rounded-full transition-colors {notifyOnCommit ? 'bg-green-500' : 'bg-muted-foreground/30'}"
             role="switch"
             aria-checked={notifyOnCommit}
+            aria-label="Notify on commit"
           >
             <span class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform {notifyOnCommit ? 'translate-x-4' : ''}"></span>
           </button>
@@ -433,6 +438,7 @@
             class="relative h-5 w-9 rounded-full transition-colors {notifyOnBranchCreate ? 'bg-green-500' : 'bg-muted-foreground/30'}"
             role="switch"
             aria-checked={notifyOnBranchCreate}
+            aria-label="Notify on branch creation"
           >
             <span class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform {notifyOnBranchCreate ? 'translate-x-4' : ''}"></span>
           </button>
@@ -450,6 +456,7 @@
             class="relative h-5 w-9 rounded-full transition-colors {notifyOnServing ? 'bg-green-500' : 'bg-muted-foreground/30'}"
             role="switch"
             aria-checked={notifyOnServing}
+            aria-label="Notify on serving change"
           >
             <span class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform {notifyOnServing ? 'translate-x-4' : ''}"></span>
           </button>

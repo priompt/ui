@@ -46,7 +46,7 @@
       <ul class="space-y-1">
         {#each slots as slot}
           <li class="flex items-center gap-2 text-sm">
-            <code class="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">{`{{${slot}}}`}</code>
+            <code class="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">{`{${slot}}`}</code>
           </li>
         {/each}
       </ul>
