@@ -1,2 +1,4 @@
 allowBuilds:
   esbuild: true
+  # @grpc/proto-loader dependency; its postinstall is a version banner.
+  protobufjs: true
