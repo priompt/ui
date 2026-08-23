@@ -5,7 +5,7 @@
   let lines = $derived(content.split('\n'));
 
   // Regex to find slot patterns for highlighting
-  const SLOT_PATTERN = /(\{\{[a-zA-Z_][a-zA-Z0-9_]*\}\})/g;
+  const SLOT_PATTERN = /(\{[a-zA-Z_][a-zA-Z0-9_]*\})/g;
 </script>
 
 <div class="overflow-hidden rounded-lg border border-border bg-card">

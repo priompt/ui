@@ -5,10 +5,16 @@
   import { Save } from '@lucide/svelte';
   import { goto } from '$app/navigation';
   import { mockPromptContents, mockCommits } from '$lib/mocks/data';
+  import { validateTemplate } from '$lib/utils/slots';
 
   let { data } = $props();
   let content = $state(data.content);
   let showCommitDialog = $state(false);
+
+  // The same rules the server enforces on write and on serve. Without this the
+  // editor happily saved an empty prompt onto the branch marked "serving" — a
+  // publish would have refused it outright.
+  const validationError = $derived(validateTemplate(content));
 
   function handleCommit(commitData: { message: string; description: string; branch: string }) {
     // Update mock data in memory
@@ -43,11 +49,17 @@
     <h1 class="text-lg font-semibold text-foreground">
       Editing <span class="font-mono text-muted-foreground">{data.filePath}</span>
     </h1>
-    <Button onclick={() => showCommitDialog = true}>
+    <Button disabled={validationError !== null} onclick={() => showCommitDialog = true}>
       <Save class="mr-1.5 h-4 w-4" />
       Save
     </Button>
   </div>
+
+  {#if validationError}
+    <p role="alert" class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+      {validationError}
+    </p>
+  {/if}
 
   <PromptEditor
     initialContent={data.content}

@@ -20,7 +20,7 @@
 		<div class="flex flex-col">
 			{#each mockNamespaces as ns}
 				<a
-					href="/{ns.org}/{ns.name}"
+					href="/{ns.name}"
 					class="group flex items-center gap-3 py-2"
 				>
 					<span class="text-sm text-muted-foreground">

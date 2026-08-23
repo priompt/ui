@@ -5,7 +5,9 @@
 
 	let { children } = $props();
 
-	const namespace = $derived(page.params.namespace);
+	// page.params values are string | undefined; this layout only renders under
+	// [namespace], so the param is always present.
+	const namespace = $derived(page.params.namespace ?? '');
 </script>
 
 <div class="mx-auto w-full max-w-6xl px-6 py-6">
