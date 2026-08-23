@@ -3,20 +3,22 @@ import type { PageServerLoad } from './$types';
 import { mockCommits } from '$lib/mocks/data';
 import { diffCommits, getPrompt, history, worstVerdict, type WireChange } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
+import { unifiedDiff, type SemanticChange } from '$lib/utils/diff';
+
 
 /**
- * A plain unified line diff, so the file pane shows the textual change beside
- * the semantic one. The two answer different questions and the page wants both:
- * this is what moved, the panel below is what it meant.
+ * The wire shape is snake_case (the proto is loaded with keepCase), while the
+ * diff renderer takes camelCase. Convert once, here, rather than teaching the
+ * tested renderer about the transport.
  */
-function lineDiff(before: string, after: string, path: string): string {
-	if (before === after) return '';
-	const a = before.length ? before.split('\n') : [];
-	const b = after.split('\n');
-	const out = [`--- a/${path}`, `+++ b/${path}`, `@@ -1,${a.length} +1,${b.length} @@`];
-	for (const line of a) out.push(`-${line}`);
-	for (const line of b) out.push(`+${line}`);
-	return out.join('\n');
+function toHunks(changes: WireChange[]): SemanticChange[] {
+	return changes.map((c) => ({
+		oldStart: c.old_start,
+		oldEnd: c.old_end,
+		newStart: c.new_start,
+		newEnd: c.new_end,
+		classification: c.classification
+	}));
 }
 
 export const load: PageServerLoad = async ({ params, url }) => {
@@ -67,7 +69,9 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			commit: {
 				...commit,
 				files: [path],
-				diff: lineDiff(before?.content ?? '', content?.content ?? '', path)
+				// Rendered from the hunk ranges the server already computed, so the
+				// textual diff and the semantic verdict describe the same regions.
+				diff: unifiedDiff(before?.content ?? '', content?.content ?? '', toHunks(changes))
 			},
 			path,
 			content: content?.content ?? '',

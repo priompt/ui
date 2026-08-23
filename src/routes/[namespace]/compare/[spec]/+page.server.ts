@@ -5,6 +5,7 @@ import { mockBranches, mockComparisons } from '$lib/mocks/data';
 import { compareBranches, getPrompt, KNOWN_BRANCHES } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
 import { httpStatus } from '$lib/server/source';
+import { unifiedDiff } from '$lib/utils/diff';
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	const spec = parseCompareSpec(params.spec);
@@ -41,14 +42,20 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			getPrompt(params.namespace, path, spec.base).catch(() => null),
 			getPrompt(params.namespace, path, spec.head).catch(() => null)
 		]);
+		// Same renderer as the commit view, driven by the server's hunk ranges.
 		const diff = cmp.identical
 			? ''
-			: [
-					`--- a/${path} (${spec.base})`,
-					`+++ b/${path} (${spec.head})`,
-					...(before?.content ?? '').split('\n').map((l) => `-${l}`),
-					...(after?.content ?? '').split('\n').map((l) => `+${l}`)
-				].join('\n');
+			: unifiedDiff(
+					before?.content ?? '',
+					after?.content ?? '',
+					cmp.changes.map((c) => ({
+						oldStart: c.old_start,
+						oldEnd: c.old_end,
+						newStart: c.new_start,
+						newEnd: c.new_end,
+						classification: c.classification
+					}))
+				);
 
 		return {
 			namespace: params.namespace,

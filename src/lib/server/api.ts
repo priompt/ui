@@ -16,23 +16,10 @@
  */
 import { call, PriomptError } from './client';
 import type { Branch, Commit, CommitSummary, Namespace, PromptContent, PromptFile } from '$lib/types';
+import { worstVerdict as verdictOf } from '$lib/utils/diff';
 
-const SCHEME = 'priompt://';
-export const SUFFIX = '.prompt';
-
-// ---------------------------------------------------------------- addresses
-
-export function toURI(namespace: string, path: string): string {
-	const clean = path.endsWith(SUFFIX) ? path.slice(0, -SUFFIX.length) : path;
-	return `${SCHEME}${namespace}/${clean}`;
-}
-
-export function fromURI(uri: string): { namespace: string; path: string } {
-	const rest = uri.startsWith(SCHEME) ? uri.slice(SCHEME.length) : uri;
-	const slash = rest.indexOf('/');
-	if (slash < 0) return { namespace: rest, path: '' };
-	return { namespace: rest.slice(0, slash), path: rest.slice(slash + 1) };
-}
+export { SCHEME, SUFFIX, toURI, fromURI } from './uri';
+import { SCHEME, SUFFIX, toURI, fromURI } from './uri';
 
 // ------------------------------------------------------------------- wire
 
@@ -225,14 +212,19 @@ export async function diffDraft(
 	return res.changes ?? [];
 }
 
-/** The worst verdict across a set of hunks — what a reviewer needs to see. */
+/**
+ * The strongest verdict across a commit's hunks. Delegates to the tested
+ * implementation in $lib/utils/diff rather than keeping a second copy — two
+ * rankings of the same three words is exactly how they drift apart.
+ */
 export function worstVerdict(changes: WireChange[]): string {
-	const rank: Record<string, number> = { 'minor edit': 1, 'localized tweak': 2, structural: 3 };
-	let worst = '';
-	for (const c of changes) {
-		if ((rank[c.classification] ?? 0) > (rank[worst] ?? 0)) worst = c.classification;
-	}
-	return worst;
+	return verdictOf(changes.map((c) => ({
+		oldStart: c.old_start,
+		oldEnd: c.old_end,
+		newStart: c.new_start,
+		newEnd: c.new_end,
+		classification: c.classification
+	}))) ?? '';
 }
 
 export async function branches(namespace: string, path: string): Promise<Branch[]> {
