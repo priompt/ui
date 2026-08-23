@@ -7,6 +7,8 @@
   } from '@lucide/svelte';
   import { mockBranches } from '$lib/mocks';
 
+  let { data } = $props();
+
   const namespace = $derived(page.params.namespace);
   
   // General
@@ -65,6 +67,48 @@
     <h1 class="text-xl font-semibold text-foreground">Settings</h1>
     <p class="mt-1 text-sm text-muted-foreground">Manage configuration for the <span class="font-mono font-medium text-foreground">{namespace}</span> namespace</p>
   </div>
+
+  <!-- What this UI is actually connected to. Everything below this panel is
+       sample state that persists nowhere: Priompt has no per-namespace settings
+       API, and server configuration comes from `priompt serve` flags. Saying so
+       beats rendering seven toggles that quietly do nothing. -->
+  {#if data.live && data.info}
+    <section class="rounded-lg border border-border bg-card">
+      <div class="border-b border-border px-4 py-3">
+        <h2 class="text-sm font-semibold text-foreground">Connection</h2>
+        <p class="text-xs text-muted-foreground">Live, from the server this UI is pointed at.</p>
+      </div>
+      <dl class="grid gap-x-6 gap-y-2 px-4 py-3 text-sm sm:grid-cols-[12rem_1fr]">
+        <dt class="text-muted-foreground">Server</dt>
+        <dd class="font-mono text-foreground">{data.info.host}</dd>
+        <dt class="text-muted-foreground">Transport</dt>
+        <dd class="font-mono text-foreground">{data.info.tls ? 'TLS' : 'plaintext'}</dd>
+        <dt class="text-muted-foreground">Credential</dt>
+        <dd class="font-mono text-foreground">{data.info.authenticated ? 'bearer token (held server-side)' : 'none'}</dd>
+        <dt class="text-muted-foreground">Reachable</dt>
+        <dd class="font-mono {data.info.reachable ? 'text-emerald-300' : 'text-destructive'}">
+          {data.info.reachable ? 'yes' : (data.info.error ?? 'no')}
+        </dd>
+        {#if data.info.reachable}
+          <dt class="text-muted-foreground">Prompts visible</dt>
+          <dd class="font-mono text-foreground">{data.info.promptCount}</dd>
+          <dt class="text-muted-foreground">Orgs in scope</dt>
+          <dd class="font-mono text-foreground">{data.info.orgs.join(', ') || '—'}</dd>
+        {/if}
+      </dl>
+      <p class="border-t border-border px-4 py-2 text-xs text-muted-foreground">
+        Storage, caching, TLS, rate limits and auth are set by <code class="font-mono">priompt serve</code>
+        flags and environment. This UI is a client; the settings below are not wired to anything.
+      </p>
+    </section>
+  {:else}
+    <section class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+      <p class="text-sm text-amber-200">
+        No Priompt server configured — everything on this page is sample data.
+        Set <code class="font-mono">PRIOMPT_URL</code> to connect.
+      </p>
+    </section>
+  {/if}
 
   <!-- GENERAL -->
   <section class="space-y-4">

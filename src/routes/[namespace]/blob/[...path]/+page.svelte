@@ -1,10 +1,18 @@
 <script lang="ts">
+  import LiveUpdates from '$lib/components/prompt/LiveUpdates.svelte';
   import PromptViewer from '$lib/components/prompt/PromptViewer.svelte';
   import PromptMeta from '$lib/components/prompt/PromptMeta.svelte';
   import PromptActions from '$lib/components/prompt/PromptActions.svelte';
 
   let { data } = $props();
 </script>
+
+{#if data.live}
+  <div class="mb-2 flex justify-end">
+    <LiveUpdates namespace={data.namespace} path={data.filePath} />
+  </div>
+{/if}
+
 
 <svelte:head>
   <title>{data.fileName} — {data.namespace} — Priompt</title>

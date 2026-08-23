@@ -304,4 +304,163 @@ export async function rollback(
 	return res.version_hash;
 }
 
+
+// ------------------------------------------------------- branching & merging
+
+export async function mergeBranch(
+	namespace: string,
+	path: string,
+	into: string,
+	from: string,
+	message = ''
+): Promise<string> {
+	const res = await call<{ commit_hash: string }>('MergeBranch', {
+		uri: toURI(namespace, path),
+		into,
+		from,
+		message
+	});
+	return res.commit_hash;
+}
+
+/**
+ * Promote, as `promptctl promote` means it: move a prompt from one environment
+ * branch onto another. The CLI does it in git; over the API it is a merge, with
+ * the target branch created first if this prompt has never been promoted there.
+ */
+export async function promote(
+	namespace: string,
+	path: string,
+	from: string,
+	to: string
+): Promise<string> {
+	try {
+		await history(namespace, path, to);
+	} catch {
+		// The target branch does not exist on this prompt yet — root it at the
+		// source so the merge has somewhere to land.
+		await createBranch(namespace, path, to, from);
+	}
+	return mergeBranch(namespace, path, to, from, `promote ${from} to ${to}`);
+}
+
+/** Branch names worth probing. There is no list-branches RPC — see branches(). */
+export const KNOWN_BRANCHES = ['main', 'dev', 'staging', 'prod'];
+
+// -------------------------------------------------------------- comparing
+
+export interface Comparison {
+	from: string;
+	to: string;
+	fromHash: string;
+	toHash: string;
+	changes: WireChange[];
+	verdict: string;
+	identical: boolean;
+}
+
+/** Diff two branch tips of one prompt — the branch-compare view. */
+export async function compareBranches(
+	namespace: string,
+	path: string,
+	from: string,
+	to: string
+): Promise<Comparison> {
+	const [a, b] = await Promise.all([
+		history(namespace, path, from),
+		history(namespace, path, to)
+	]);
+	const fromHash = a[0]?.fullHash ?? '';
+	const toHash = b[0]?.fullHash ?? '';
+	if (!fromHash || !toHash) throw new PriomptError('not_found', 'One of those branches has no commits.');
+	if (fromHash === toHash) {
+		return { from, to, fromHash, toHash, changes: [], verdict: '', identical: true };
+	}
+	const changes = await diffCommits(namespace, path, fromHash, toHash);
+	return { from, to, fromHash, toHash, changes, verdict: worstVerdict(changes), identical: false };
+}
+
+// ---------------------------------------------------------------- searching
+
+export interface SearchHit {
+	uri: string;
+	path: string;
+	namespace: string;
+	line: number;
+	text: string;
+	matchedContent: boolean;
+}
+
+/**
+ * Search, which the API has no RPC for. ListPrompts gives addresses; matching
+ * content means fetching the prompts and scanning them here. That is honest but
+ * linear, so it is capped — a real search needs an index on the server, and
+ * saying so is better than quietly truncating.
+ */
+export const SEARCH_SCAN_LIMIT = 200;
+
+export async function search(
+	namespace: string,
+	query: string
+): Promise<{ hits: SearchHit[]; scanned: number; truncated: boolean }> {
+	const q = query.trim().toLowerCase();
+	if (!q) return { hits: [], scanned: 0, truncated: false };
+
+	const entries = await listAll(`${SCHEME}${namespace}/`);
+	const truncated = entries.length > SEARCH_SCAN_LIMIT;
+	const scan = entries.slice(0, SEARCH_SCAN_LIMIT);
+	const hits: SearchHit[] = [];
+
+	for (const e of scan) {
+		const { path } = fromURI(e.uri);
+		if (path.toLowerCase().includes(q)) {
+			hits.push({ uri: e.uri, path, namespace, line: 0, text: path, matchedContent: false });
+			continue;
+		}
+		try {
+			const p = await call<{ template: string }>('GetPrompt', { uri: e.uri, ref: '' });
+			const lines = p.template.split('\n');
+			const i = lines.findIndex((l) => l.toLowerCase().includes(q));
+			if (i >= 0) {
+				hits.push({ uri: e.uri, path, namespace, line: i + 1, text: lines[i].trim(), matchedContent: true });
+			}
+		} catch {
+			// A prompt we cannot read is simply not a hit.
+		}
+	}
+	return { hits, scanned: scan.length, truncated };
+}
+
+// ------------------------------------------------------------ server status
+
+export interface ServerInfo {
+	host: string;
+	tls: boolean;
+	authenticated: boolean;
+	reachable: boolean;
+	promptCount: number;
+	orgs: string[];
+	error?: string;
+}
+
+/** What the UI is actually connected to — the answer `priompt list` gives implicitly. */
+export async function serverInfo(cfg: { host: string; tls: boolean; token: string }): Promise<ServerInfo> {
+	const base = {
+		host: cfg.host,
+		tls: cfg.tls,
+		authenticated: Boolean(cfg.token),
+		reachable: false,
+		promptCount: 0,
+		orgs: [] as string[]
+	};
+	try {
+		const entries = await listAll('');
+		const orgs = [...new Set(entries.map((e) => fromURI(e.uri).namespace))].sort();
+		return { ...base, reachable: true, promptCount: entries.length, orgs };
+	} catch (e) {
+		const err = e as PriomptError;
+		return { ...base, error: `${err.code}: ${err.message}` };
+	}
+}
+
 export { PriomptError };
