@@ -24,5 +24,5 @@
     <span class="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">{data.commits.length}</span>
   </div>
 
-  <CommitTimeline commits={data.commits} namespace={data.namespace} />
+  <CommitTimeline commits={data.commits} namespace={data.namespace} path={data.filePath} />
 </div>

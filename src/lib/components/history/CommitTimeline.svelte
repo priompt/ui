@@ -5,9 +5,18 @@
   interface Props {
     commits: Commit[];
     namespace: string;
+    /** The prompt these commits belong to. A commit is only addressable together
+        with its prompt — commit identity includes the URI — so the detail view
+        needs it to resolve the commit and diff it against its parent. */
+    path?: string;
   }
 
-  let { commits, namespace }: Props = $props();
+  let { commits, namespace, path = '' }: Props = $props();
+
+  const commitHref = (hash: string) =>
+    path
+      ? `/${namespace}/commit/${hash}?path=${encodeURIComponent(path)}`
+      : `/${namespace}/commit/${hash}`;
 
   function getDateLabel(dateStr: string): string {
     const date = new Date(dateStr);
@@ -72,7 +81,7 @@
             </div>
 
             <a
-              href="/{namespace}/commit/{commit.hash}"
+              href={commitHref(commit.hash)}
               class="group block pb-4"
             >
               <div class="flex items-baseline justify-between gap-4">

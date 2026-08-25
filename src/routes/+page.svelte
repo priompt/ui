@@ -2,7 +2,9 @@
 	import { ArrowRight } from '@lucide/svelte';
 	import DashboardSidebar from '$lib/components/layout/DashboardSidebar.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
-	import { mockNamespaces, mockChangelog } from '$lib/mocks';
+	import { mockChangelog } from '$lib/mocks';
+
+	let { data } = $props();
 </script>
 
 <svelte:head>
@@ -17,8 +19,24 @@
 	<main class="flex flex-1 flex-col px-8 pt-8">
 		<h1 class="mb-6 text-2xl font-normal text-foreground">Namespaces</h1>
 
+		{#if data.scopedHint}
+			<p role="status" class="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
+				This token is scoped to a single org, so it cannot list every namespace —
+				which is correct. Set <code class="font-mono">PRIOMPT_ORG</code> to that org
+				and this page will show it.
+			</p>
+		{:else if data.error}
+			<p role="alert" class="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+				Could not reach the Priompt server — {data.error}
+			</p>
+		{:else if data.namespaces.length === 0}
+			<p class="mb-4 text-sm text-muted-foreground">
+				No prompts visible to this token yet.
+			</p>
+		{/if}
+
 		<div class="flex flex-col">
-			{#each mockNamespaces as ns}
+			{#each data.namespaces as ns}
 				<a
 					href="/{ns.name}"
 					class="group flex items-center gap-3 py-2"
@@ -27,7 +45,7 @@
 						{ns.visibility === 'private' ? '🔒' : '🌐'}
 					</span>
 					<span class="text-sm text-link-blue group-hover:underline">
-						{ns.org}/{ns.name}
+						{data.live ? ns.name : `${ns.org}/${ns.name}`}
 					</span>
 					<span class="text-xs text-muted-foreground">{ns.promptCount} prompts</span>
 					<span class="text-xs text-muted-foreground">· {ns.updatedAt}</span>
