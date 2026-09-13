@@ -48,7 +48,7 @@
 				class="flex items-center gap-2 rounded-md px-1 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
 			>
 				<span class="text-sm">
-					{item.org === 'starthackHQ' ? '🔒' : '🌐'}
+					{item.org === 'acme' ? '🔒' : '🌐'}
 				</span>
 				<span class="truncate text-sm">{item.org}/{item.name}</span>
 			</a>
@@ -106,7 +106,7 @@
 					onclick={closeMobileSidebar}
 				>
 					<span class="text-sm">
-						{item.org === 'starthackHQ' ? '🔒' : '🌐'}
+						{item.org === 'acme' ? '🔒' : '🌐'}
 					</span>
 					<span class="truncate text-sm">{item.org}/{item.name}</span>
 				</a>

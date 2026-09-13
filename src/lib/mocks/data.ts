@@ -12,8 +12,8 @@ import type {
 export const mockNamespaces: Namespace[] = [
 	{
 		id: '1',
-		name: 'uval.ai',
-		org: 'starthackHQ',
+		name: 'assistant',
+		org: 'acme',
 		visibility: 'private',
 		promptCount: 24,
 		updatedAt: '12 minutes ago',
@@ -23,8 +23,8 @@ export const mockNamespaces: Namespace[] = [
 	},
 	{
 		id: '2',
-		name: 'Evalyn',
-		org: 'starthackHQ',
+		name: 'evals',
+		org: 'acme',
 		visibility: 'private',
 		promptCount: 12,
 		updatedAt: '2 hours ago',
@@ -35,7 +35,7 @@ export const mockNamespaces: Namespace[] = [
 	{
 		id: '3',
 		name: 'core',
-		org: 'starthackHQ',
+		org: 'acme',
 		visibility: 'private',
 		promptCount: 8,
 		updatedAt: 'yesterday',
@@ -45,8 +45,8 @@ export const mockNamespaces: Namespace[] = [
 	},
 	{
 		id: '4',
-		name: 'Contextinator',
-		org: 'starthackHQ',
+		name: 'context-tools',
+		org: 'acme',
 		visibility: 'private',
 		promptCount: 5,
 		updatedAt: '3 days ago',
@@ -56,8 +56,8 @@ export const mockNamespaces: Namespace[] = [
 	},
 	{
 		id: '5',
-		name: 'qwendean-training',
-		org: 'iamDyeus',
+		name: 'chatbot-training',
+		org: 'octo',
 		visibility: 'public',
 		promptCount: 16,
 		updatedAt: '1 week ago',
@@ -67,8 +67,8 @@ export const mockNamespaces: Namespace[] = [
 	},
 	{
 		id: '6',
-		name: 'dolshyne-shopify',
-		org: 'iamDyeus',
+		name: 'storefront',
+		org: 'octo',
 		visibility: 'public',
 		promptCount: 4,
 		updatedAt: '2 weeks ago',
@@ -78,8 +78,8 @@ export const mockNamespaces: Namespace[] = [
 	},
 	{
 		id: '7',
-		name: 'qwendean',
-		org: 'iamDyeus',
+		name: 'chatbot',
+		org: 'octo',
 		visibility: 'public',
 		promptCount: 9,
 		updatedAt: '3 weeks ago',
@@ -90,13 +90,13 @@ export const mockNamespaces: Namespace[] = [
 ];
 
 export const mockRecentItems: RecentItem[] = [
-	{ org: 'starthackHQ', name: 'uval.ai', path: '/uval.ai' },
-	{ org: 'starthackHQ', name: 'Evalyn', path: '/Evalyn' },
-	{ org: 'starthackHQ', name: 'core', path: '/core' },
-	{ org: 'starthackHQ', name: 'Contextinator', path: '/Contextinator' },
-	{ org: 'iamDyeus', name: 'qwendean-training', path: '/qwendean-training' },
-	{ org: 'iamDyeus', name: 'dolshyne-shopify', path: '/dolshyne-shopify' },
-	{ org: 'iamDyeus', name: 'qwendean', path: '/qwendean' }
+	{ org: 'acme', name: 'assistant', path: '/assistant' },
+	{ org: 'acme', name: 'evals', path: '/evals' },
+	{ org: 'acme', name: 'core', path: '/core' },
+	{ org: 'acme', name: 'context-tools', path: '/context-tools' },
+	{ org: 'octo', name: 'chatbot-training', path: '/chatbot-training' },
+	{ org: 'octo', name: 'storefront', path: '/storefront' },
+	{ org: 'octo', name: 'chatbot', path: '/chatbot' }
 ];
 
 export const mockChangelog: ChangelogEntry[] = [
@@ -135,7 +135,7 @@ export const mockAcmeFiles: PromptFile[] = [
 		lastCommit: {
 			hash: '8c21f4a',
 			message: 'add followup re-engagement prompt',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-16T00:00:00Z'
 		},
 		updatedAt: '2 hours ago'
@@ -148,7 +148,7 @@ export const mockAcmeFiles: PromptFile[] = [
 		lastCommit: {
 			hash: '8c21f4a',
 			message: 'tighten refund handling',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-16T01:30:00Z'
 		},
 		updatedAt: '12 minutes ago'
@@ -161,7 +161,7 @@ export const mockAcmeFiles: PromptFile[] = [
 		lastCommit: {
 			hash: 'a91b2e7',
 			message: 'update qualification criteria',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-15T20:00:00Z'
 		},
 		updatedAt: '5 hours ago'
@@ -174,7 +174,7 @@ export const mockAcmeFiles: PromptFile[] = [
 		lastCommit: {
 			hash: 'f7d3a91',
 			message: 'improve product summary',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-15T00:00:00Z'
 		},
 		updatedAt: 'yesterday'
@@ -187,7 +187,7 @@ export const mockAcmeFiles: PromptFile[] = [
 		lastCommit: {
 			hash: '3b7d9c2',
 			message: 'add tone guidelines',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-14T00:00:00Z'
 		},
 		updatedAt: '2 days ago'
@@ -199,7 +199,7 @@ export const mockAcmeFiles: PromptFile[] = [
 		lastCommit: {
 			hash: '1a2b3c4',
 			message: 'initial commit',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-09T00:00:00Z'
 		},
 		updatedAt: '1 week ago'
@@ -214,7 +214,7 @@ export const mockBranches: Branch[] = [
 		lastCommit: {
 			hash: '8c21f4a',
 			message: 'tighten refund handling',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-16T01:30:00Z'
 		}
 	},
@@ -225,7 +225,7 @@ export const mockBranches: Branch[] = [
 		lastCommit: {
 			hash: 'e4f5a6b',
 			message: 'experiment with new tone',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-15T18:00:00Z'
 		}
 	},
@@ -236,7 +236,7 @@ export const mockBranches: Branch[] = [
 		lastCommit: {
 			hash: 'c7d8e9f',
 			message: 'prepare release candidate',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-14T12:00:00Z'
 		}
 	}
@@ -254,7 +254,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: 'b4c9e12',
 				message: 'add welcome onboarding prompt',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-14T10:00:00Z'
 			},
 			updatedAt: '2 days ago'
@@ -266,7 +266,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: 'd7a3f51',
 				message: 'add followup re-engagement prompt',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-16T00:00:00Z'
 			},
 			updatedAt: '2 hours ago'
@@ -278,7 +278,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: 'd7a3f51',
 				message: 'add followup re-engagement prompt',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-16T00:00:00Z'
 			},
 			updatedAt: '2 hours ago'
@@ -292,7 +292,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: '8c21f4a',
 				message: 'tighten refund handling',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-16T01:30:00Z'
 			},
 			updatedAt: '12 minutes ago'
@@ -304,7 +304,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: '8c21f4a',
 				message: 'tighten refund handling',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-16T01:30:00Z'
 			},
 			updatedAt: '12 minutes ago'
@@ -316,7 +316,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: 'c3b8a29',
 				message: 'add escalation workflow prompt',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-15T14:00:00Z'
 			},
 			updatedAt: '11 hours ago'
@@ -329,7 +329,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: 'e1f4b78',
 				message: 'add apology and resolution templates',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-13T09:00:00Z'
 			},
 			updatedAt: '3 days ago'
@@ -341,7 +341,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: 'a5d2c67',
 				message: 'refine triage categories',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-14T16:00:00Z'
 			},
 			updatedAt: '2 days ago'
@@ -355,7 +355,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: 'e1f4b78',
 				message: 'add apology and resolution templates',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-13T09:00:00Z'
 			},
 			updatedAt: '3 days ago'
@@ -367,7 +367,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: 'e1f4b78',
 				message: 'add apology and resolution templates',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-13T09:00:00Z'
 			},
 			updatedAt: '3 days ago'
@@ -381,7 +381,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: 'a91b2e7',
 				message: 'update qualification criteria',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-15T20:00:00Z'
 			},
 			updatedAt: '5 hours ago'
@@ -393,7 +393,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: '6f3e8d1',
 				message: 'add cold outreach prompt',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-12T11:00:00Z'
 			},
 			updatedAt: '4 days ago'
@@ -407,7 +407,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: 'f7d3a91',
 				message: 'improve product summary',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-15T00:00:00Z'
 			},
 			updatedAt: 'yesterday'
@@ -421,7 +421,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: '3b7d9c2',
 				message: 'add tone guidelines',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-14T00:00:00Z'
 			},
 			updatedAt: '2 days ago'
@@ -433,7 +433,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: '9e2a4f6',
 				message: 'standardize formatting rules',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-13T15:00:00Z'
 			},
 			updatedAt: '3 days ago'
@@ -445,7 +445,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: '7c5b1d8',
 				message: 'add safety guardrails prompt',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-12T08:00:00Z'
 			},
 			updatedAt: '4 days ago'
@@ -457,7 +457,7 @@ export const mockFolderContents: Record<string, PromptFile[]> = {
 			lastCommit: {
 				hash: '2d6f9a3',
 				message: 'define brand persona attributes',
-				author: 'Arsh',
+				author: 'Alex',
 				date: '2026-08-11T12:00:00Z'
 			},
 			updatedAt: '5 days ago'
@@ -493,7 +493,7 @@ Respond in {language} language.`,
 		lastCommit: {
 			hash: '8c21f4a',
 			message: 'tighten refund handling',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-16T01:30:00Z'
 		}
 	},
@@ -516,7 +516,7 @@ Always be polite and confirm the resolution with the customer.`,
 		lastCommit: {
 			hash: '8c21f4a',
 			message: 'tighten refund handling',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-16T01:30:00Z'
 		}
 	},
@@ -539,7 +539,7 @@ The {product_name} Team`,
 		lastCommit: {
 			hash: 'b4c9e12',
 			message: 'add welcome onboarding prompt',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-14T10:00:00Z'
 		}
 	},
@@ -565,7 +565,7 @@ The {product_name} Team`,
 		lastCommit: {
 			hash: 'd7a3f51',
 			message: 'add followup re-engagement prompt',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-16T00:00:00Z'
 		}
 	},
@@ -597,7 +597,7 @@ The {product_name} Team`,
 		lastCommit: {
 			hash: 'd7a3f51',
 			message: 'add followup re-engagement prompt',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-16T00:00:00Z'
 		}
 	},
@@ -632,7 +632,7 @@ If not possible, schedule a follow-up within 24 hours.`,
 		lastCommit: {
 			hash: 'c3b8a29',
 			message: 'add escalation workflow prompt',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-15T14:00:00Z'
 		}
 	},
@@ -662,7 +662,7 @@ Suggested routing: {fallback_team}`,
 		lastCommit: {
 			hash: 'a5d2c67',
 			message: 'refine triage categories',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-14T16:00:00Z'
 		}
 	},
@@ -695,7 +695,7 @@ Warm regards,
 		lastCommit: {
 			hash: 'e1f4b78',
 			message: 'add apology and resolution templates',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-13T09:00:00Z'
 		}
 	},
@@ -733,7 +733,7 @@ Best,
 		lastCommit: {
 			hash: 'e1f4b78',
 			message: 'add apology and resolution templates',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-13T09:00:00Z'
 		}
 	},
@@ -760,7 +760,7 @@ Provide a brief justification for your score and recommended next action.`,
 		lastCommit: {
 			hash: 'a91b2e7',
 			message: 'update qualification criteria',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-15T20:00:00Z'
 		}
 	},
@@ -797,7 +797,7 @@ Subject line should be under 50 characters and curiosity-driven.`,
 		lastCommit: {
 			hash: '6f3e8d1',
 			message: 'add cold outreach prompt',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-12T11:00:00Z'
 		}
 	},
@@ -835,7 +835,7 @@ End with a clear call-to-action directing to {cta_url}.`,
 		lastCommit: {
 			hash: 'f7d3a91',
 			message: 'improve product summary',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-15T00:00:00Z'
 		}
 	},
@@ -873,7 +873,7 @@ Replace with direct, human alternatives.`,
 		lastCommit: {
 			hash: '3b7d9c2',
 			message: 'add tone guidelines',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-14T00:00:00Z'
 		}
 	},
@@ -910,7 +910,7 @@ Apply these formatting standards to all outputs for {brand_name}.
 		lastCommit: {
 			hash: '9e2a4f6',
 			message: 'standardize formatting rules',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-13T15:00:00Z'
 		}
 	},
@@ -952,7 +952,7 @@ If any of the following are detected, immediately escalate to {escalation_channe
 		lastCommit: {
 			hash: '7c5b1d8',
 			message: 'add safety guardrails prompt',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-12T08:00:00Z'
 		}
 	},
@@ -998,7 +998,7 @@ If any of the following are detected, immediately escalate to {escalation_channe
 		lastCommit: {
 			hash: '2d6f9a3',
 			message: 'define brand persona attributes',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-11T12:00:00Z'
 		}
 	},
@@ -1044,7 +1044,7 @@ This namespace contains all production prompts for Acme Corp's AI-powered custom
 		lastCommit: {
 			hash: '1a2b3c4',
 			message: 'initial commit',
-			author: 'Arsh',
+			author: 'Alex',
 			date: '2026-08-09T00:00:00Z'
 		}
 	}
@@ -1056,7 +1056,7 @@ export const mockCommits: Commit[] = [
 	{
 		hash: '8c21f4a',
 		message: 'tighten refund handling',
-		author: 'Arsh',
+		author: 'Alex',
 		authorAvatar: undefined,
 		date: '2026-08-16T01:30:00Z',
 		files: ['support/refund.prompt', 'support/agent.prompt'],
@@ -1080,7 +1080,7 @@ export const mockCommits: Commit[] = [
 	{
 		hash: 'd7a3f51',
 		message: 'add followup re-engagement prompt',
-		author: 'Arsh',
+		author: 'Alex',
 		authorAvatar: undefined,
 		date: '2026-08-16T00:00:00Z',
 		files: ['onboarding/followup.prompt', 'onboarding/re-engagement.prompt'],
@@ -1090,7 +1090,7 @@ export const mockCommits: Commit[] = [
 	{
 		hash: 'c3b8a29',
 		message: 'add escalation workflow prompt',
-		author: 'Arsh',
+		author: 'Alex',
 		authorAvatar: undefined,
 		date: '2026-08-15T14:00:00Z',
 		files: ['support/escalation.prompt'],
@@ -1113,7 +1113,7 @@ export const mockCommits: Commit[] = [
 	{
 		hash: 'a91b2e7',
 		message: 'update qualification criteria',
-		author: 'Arsh',
+		author: 'Alex',
 		authorAvatar: undefined,
 		date: '2026-08-15T20:00:00Z',
 		files: ['sales/qualification.prompt'],
@@ -1133,7 +1133,7 @@ export const mockCommits: Commit[] = [
 	{
 		hash: 'b4c9e12',
 		message: 'add welcome onboarding prompt',
-		author: 'Arsh',
+		author: 'Alex',
 		authorAvatar: undefined,
 		date: '2026-08-14T10:00:00Z',
 		files: ['onboarding/welcome.prompt'],
@@ -1158,7 +1158,7 @@ export const mockCommits: Commit[] = [
 	{
 		hash: '3b7d9c2',
 		message: 'add tone guidelines',
-		author: 'Arsh',
+		author: 'Alex',
 		authorAvatar: undefined,
 		date: '2026-08-14T00:00:00Z',
 		files: ['shared/tone-guidelines.prompt'],
