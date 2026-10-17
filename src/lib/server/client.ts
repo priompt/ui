@@ -14,13 +14,15 @@
  * a leaked token is the whole org. It stays in this process.
  */
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { env } from '$env/dynamic/private';
 
 const require = createRequire(import.meta.url);
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 
-const PROTO_PATH = new URL('../../../proto/priompt/v1/prompt.proto', import.meta.url).pathname;
+// fileURLToPath, not URL.pathname: on Windows .pathname is "/C:/...", which fs can't open.
+const PROTO_PATH = fileURLToPath(new URL('../../../proto/priompt/v1/prompt.proto', import.meta.url));
 
 export interface PriomptConfig {
 	host: string;
