@@ -87,7 +87,6 @@
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger class="ml-2">
 				<Avatar.Root class="h-8 w-8 cursor-pointer ring-2 ring-transparent hover:ring-muted-foreground/50">
-					<Avatar.Image src="https://avatars.githubusercontent.com/u/86828576" alt="User" />
 					<Avatar.Fallback>U</Avatar.Fallback>
 				</Avatar.Root>
 			</DropdownMenu.Trigger>

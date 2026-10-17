@@ -102,27 +102,27 @@ export const mockRecentItems: RecentItem[] = [
 export const mockChangelog: ChangelogEntry[] = [
 	{
 		id: '1',
-		title: 'Multiple redirect URIs and token refresh for OAuth apps',
-		date: '2026-08-15',
-		relativeTime: '19 hours ago'
+		title: '`priompt version` reports the release for go install builds',
+		date: '2026-10-17',
+		relativeTime: 'v0.7.2'
 	},
 	{
 		id: '2',
-		title: 'Grok 4.6 is now available in GitHub Copilot',
-		date: '2026-08-14',
-		relativeTime: 'Yesterday'
+		title: 'Go modules published under github.com/priompt/*',
+		date: '2026-10-17',
+		relativeTime: 'v0.7.1'
 	},
 	{
 		id: '3',
-		title: 'GitHub Copilot weekly releases — August 10',
-		date: '2026-08-13',
-		relativeTime: '2 days ago'
+		title: 'Multi-arch server image on GHCR, with build info in /metrics',
+		date: '2026-10-17',
+		relativeTime: 'v0.7.0'
 	},
 	{
 		id: '4',
-		title: 'License data quality improvements',
-		date: '2026-08-13',
-		relativeTime: '2 days ago'
+		title: 'Python SDK published to PyPI as priompt-sdk',
+		date: '2026-10-07',
+		relativeTime: 'v0.7.0'
 	}
 ];
 
