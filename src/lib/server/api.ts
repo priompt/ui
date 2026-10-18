@@ -207,7 +207,7 @@ export async function diffDraft(
 ): Promise<WireChange[]> {
 	const res = await call<{ changes: WireChange[] }>('DiffPrompt', {
 		uri: toURI(namespace, path),
-		template
+		new_template: template
 	});
 	return res.changes ?? [];
 }
