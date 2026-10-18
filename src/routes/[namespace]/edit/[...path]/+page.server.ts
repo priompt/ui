@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { parseBranchAndPath } from '$lib/utils/path';
 import { mockBranches, mockPromptContents } from '$lib/mocks/data';
 import { detectSlots, validateTemplate } from '$lib/utils/slots';
-import { getPrompt, publish, diffDraft, worstVerdict } from '$lib/server/api';
+import { getPrompt, publish, diffDraft, worstVerdict, branches } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
 import { splitRef, httpStatus } from '$lib/server/source';
 
@@ -22,11 +22,17 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	const { branch, path } = splitRef(params.path);
 	try {
-		const p = await getPrompt(params.namespace, path, branch);
+		// Every branch of this prompt, so the commit dialog can commit to any of
+		// them rather than only the one the editor was opened on.
+		const [p, bs] = await Promise.all([
+			getPrompt(params.namespace, path, branch),
+			branches(params.namespace, path).catch(() => [])
+		]);
+		const current = { name: branch, isDefault: branch === 'main', isServing: branch === 'main', lastCommit: p.lastCommit };
 		return {
 			namespace: params.namespace, branch, filePath: path,
 			fileName: path.split('/').pop() ?? '', content: p.content,
-			branches: [{ name: branch, isDefault: branch === 'main', isServing: branch === 'main', lastCommit: p.lastCommit }],
+			branches: bs.some((b) => b.name === branch) ? bs : [current, ...bs],
 			live: true
 		};
 	} catch (e) {

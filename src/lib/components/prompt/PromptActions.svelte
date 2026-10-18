@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Pencil, History, FileText, Copy, Check } from '@lucide/svelte';
+  import { Pencil, History, FileText, Copy, Check, GitCompare } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
 
   let { namespace, branch, filePath, content }: {
@@ -27,6 +27,12 @@
     <History class="mr-1.5 h-3.5 w-3.5" />
     History
   </Button>
+  {#if branch !== 'main'}
+    <Button variant="outline" size="sm" href="/{namespace}/compare/main...{branch}?path={encodeURIComponent(filePath)}">
+      <GitCompare class="mr-1.5 h-3.5 w-3.5" />
+      Compare
+    </Button>
+  {/if}
   <Button variant="outline" size="sm" href="/{namespace}/blob/{branch}/{filePath}?raw=true">
     <FileText class="mr-1.5 h-3.5 w-3.5" />
     Raw

@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { parseBranchAndPath } from '$lib/utils/path';
 import { mockBranches, mockCommits } from '$lib/mocks/data';
-import { history } from '$lib/server/api';
+import { history, listAll, fromURI, SCHEME, SUFFIX } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
 import { splitRef, httpStatus } from '$lib/server/source';
 
@@ -28,10 +28,14 @@ export const load: PageServerLoad = async ({ params }) => {
 	// chain — so there is no branch-wide log to show without a path.
 	const { branch, path } = splitRef(params.path);
 	if (!path) {
+		// So the namespace History tab lists the prompts to pick from instead of
+		// an empty timeline.
+		const prompts = (await listAll(`${SCHEME}${params.namespace}/`).catch(() => []))
+			.map((e) => `${fromURI(e.uri).path}${SUFFIX}`)
+			.sort();
 		return {
 			namespace: params.namespace, branch, filePath: '',
-			commits: [], branches: [], live: true,
-			note: 'History is per prompt. Open a prompt to see its commits.'
+			commits: [], branches: [], prompts, live: true
 		};
 	}
 	try {
