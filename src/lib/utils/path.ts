@@ -75,3 +75,13 @@ export function parseCompareSpec(spec: string): { base: string; head: string } |
 	if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
 	return { base: parts[0], head: parts[1] };
 }
+
+/**
+ * A form action URL that keeps the page's query. A bare `?/create` replaces the
+ * query string, so a native (non-enhanced) post comes back to a page that has
+ * forgotten its `?path=` and with it the selected prompt.
+ */
+export function actionUrl(action: string, query: Record<string, string>): string {
+	const qs = new URLSearchParams(query).toString();
+	return `?${qs ? `${qs}&` : ''}/${action}`;
+}

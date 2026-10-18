@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
+	import { actionUrl } from '$lib/utils/path';
 
 	let {
 		open = $bindable(false),
@@ -97,7 +98,7 @@
 				Create new branch
 			</h2>
 
-			<form method="POST" action="?/create" onsubmit={handleSubmit} class="space-y-4">
+			<form method="POST" action={actionUrl('create', promptPath ? { path: promptPath } : {})} onsubmit={handleSubmit} class="space-y-4">
 				<input type="hidden" name="path" value={promptPath} />
 				<!-- Branch name -->
 				<div class="space-y-1.5">
