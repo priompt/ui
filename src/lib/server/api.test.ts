@@ -20,49 +20,41 @@ test('diffDraft sends the edit as new_template', async () => {
 	}
 });
 
-test('promptLog lists commits from every branch, newest first, not only main', async () => {
+const commit = (h: string) => ({
+	hash: h.repeat(64), version_hash: 'v'.repeat(64), parent: '', parent2: '',
+	author: 'ana', message: h, created_at: '2026-10-18T00:00:00Z'
+});
+
+test('promptLog lists every commit of the prompt, in the server order', async () => {
 	// The bug this guards: after main was rolled back, the Rollback list showed
-	// only main's ancestors, so commits still on other branches could not be
-	// rolled forward to.
-	const c = (h: string, date: string) => ({
-		hash: h.repeat(64), version_hash: 'v'.repeat(64), parent: '', parent2: '',
-		author: 'ana', message: h, created_at: date
-	});
-	const root = c('a', '2026-10-01T00:00:00Z');
-	const devTip = c('d', '2026-10-03T00:00:00Z');
-	const stagingTip = c('s', '2026-10-02T00:00:00Z');
-	const logs: Record<string, unknown[]> = { main: [root], dev: [devTip, root], staging: [stagingTip, root] };
-	const s = await fakeServer({
-		History: (r) => {
-			const log = logs[r.branch as string];
-			if (!log) throw { code: 5, details: 'branch not found' };
-			return { commits: log };
-		}
-	});
+	// only main's ancestors, so later commits could not be rolled forward to.
+	// The server orders children before parents; same-timestamp commits must
+	// keep that order rather than be re-sorted by date.
+	const s = await fakeServer({ ListCommits: () => ({ commits: [commit('d'), commit('s'), commit('a')] }) });
 	try {
 		const log = await s.api.promptLog('acme', 'support/agent.prompt');
 		assert.deepEqual(log.map((x) => x.hash), ['ddddddd', 'sssssss', 'aaaaaaa']);
+		assert.deepEqual(s.calls, [{ method: 'ListCommits', req: { uri: 'priompt://acme/support/agent' } }]);
 	} finally {
 		s.close();
 	}
 });
 
-test('branches lists any branch it is told about, not only the four conventional names', async () => {
+test('branches lists every branch the server has, main first, with its tip', async () => {
 	// The bug this guards: the list was fixed to main/dev/staging/prod, so a
-	// branch such as feature-x, which the server accepts, could never be shown.
-	const commit = {
-		hash: 'a'.repeat(64), version_hash: 'b'.repeat(64), parent: '', parent2: '',
-		author: 'ana', message: 'x', created_at: '2026-10-18T00:00:00Z'
-	};
+	// branch such as feature-x, which the server accepts, was never shown.
 	const s = await fakeServer({
-		History: (r) => {
-			if (r.branch === 'main' || r.branch === 'feature-x') return { commits: [commit] };
-			throw { code: 5, details: 'branch not found' };
-		}
+		ListBranches: () => ({
+			branches: [
+				{ name: 'feature-x', commit_hash: 'f'.repeat(64) },
+				{ name: 'main', commit_hash: 'a'.repeat(64) }
+			]
+		}),
+		ListCommits: () => ({ commits: [commit('f'), commit('a')] })
 	});
 	try {
-		const bs = await s.api.branches('acme', 'support/agent.prompt', ['feature-x', 'main', 'missing']);
-		assert.deepEqual(bs.map((b) => b.name), ['main', 'feature-x']);
+		const bs = await s.api.branches('acme', 'support/agent.prompt');
+		assert.deepEqual(bs.map((b) => [b.name, b.lastCommit.hash]), [['main', 'aaaaaaa'], ['feature-x', 'fffffff']]);
 	} finally {
 		s.close();
 	}

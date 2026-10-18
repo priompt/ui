@@ -185,22 +185,15 @@ export async function history(
 }
 
 /**
- * Every commit reachable from any of the named branches, newest first.
+ * Every commit of a prompt, newest first (children before parents).
  *
  * History is first-parent from one branch tip, so once main is rolled back its
- * later commits drop out of main's log. Those that are still on another branch
- * (dev, staging, …) can be found from that branch's log and rolled forward to.
- * A commit that no branch reaches cannot be listed: the API has no RPC for it.
+ * later commits drop out of main's log. ListCommits still returns them, even
+ * when no branch reaches them, so they can be rolled forward to.
  */
-export async function promptLog(
-	namespace: string,
-	path: string,
-	names: string[] = KNOWN_BRANCHES
-): Promise<CommitRef[]> {
-	const logs = await Promise.all(names.map((n) => history(namespace, path, n).catch(() => [])));
-	const seen = new Map<string, CommitRef>();
-	for (const c of logs.flat()) if (!seen.has(c.fullHash)) seen.set(c.fullHash, c);
-	return [...seen.values()].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+export async function promptLog(namespace: string, path: string): Promise<CommitRef[]> {
+	const res = await call<{ commits: WireCommit[] }>('ListCommits', { uri: toURI(namespace, path) });
+	return (res.commits ?? []).map(summary);
 }
 
 /**
@@ -249,28 +242,22 @@ export function worstVerdict(changes: WireChange[]): string {
 	}))) ?? '';
 }
 
-export async function branches(namespace: string, path: string, extra: string[] = []): Promise<Branch[]> {
-	// The API has no "list branches" RPC — branches are per prompt, and a branch
-	// is only observable by resolving it. Probe the conventional set, plus any
-	// names the caller has seen (a branch the user created or asked for), and
-	// keep the ones that resolve, rather than inventing a server-side concept the
-	// contract does not have.
-	const names = [...new Set([...KNOWN_BRANCHES, ...extra.map((n) => n.trim()).filter(Boolean)])];
-	const found: Branch[] = [];
-	for (const name of names) {
-		try {
-			const log = await history(namespace, path, name);
-			found.push({
-				name,
-				isDefault: name === 'main',
-				isServing: name === 'main',
-				lastCommit: log[0] ?? { hash: '', fullHash: '', message: '', author: '', date: '' }
-			});
-		} catch {
-			// not-found means the branch does not exist on this prompt
-		}
-	}
-	return found;
+/** A prompt's branches, main first, each with its tip commit. */
+export async function branches(namespace: string, path: string): Promise<(Branch & { lastCommit: CommitRef })[]> {
+	const uri = toURI(namespace, path);
+	const [res, log] = await Promise.all([
+		call<{ branches: { name: string; commit_hash: string }[] }>('ListBranches', { uri }),
+		promptLog(namespace, path)
+	]);
+	const byHash = new Map(log.map((c) => [c.fullHash, c]));
+	return (res.branches ?? [])
+		.map((b) => ({
+			name: b.name,
+			isDefault: b.name === 'main',
+			isServing: b.name === 'main',
+			lastCommit: byHash.get(b.commit_hash) ?? summary(undefined)
+		}))
+		.sort((a, b) => Number(b.isDefault) - Number(a.isDefault));
 }
 
 // ------------------------------------------------------------------ writes
@@ -361,7 +348,7 @@ export async function promote(
 	return mergeBranch(namespace, path, to, from, `promote ${from} to ${to}`);
 }
 
-/** Branch names worth probing. There is no list-branches RPC — see branches(). */
+/** The environments promotion offers, whether or not the prompt has them yet. */
 export const KNOWN_BRANCHES = ['main', 'dev', 'staging', 'prod'];
 
 // -------------------------------------------------------------- comparing

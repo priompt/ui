@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { parseCompareSpec } from '$lib/utils/path';
 import { mockBranches, mockComparisons } from '$lib/mocks/data';
-import { compareBranches, getPrompt, KNOWN_BRANCHES } from '$lib/server/api';
+import { branches, compareBranches, getPrompt } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
 import { httpStatus } from '$lib/server/source';
 import { unifiedDiff } from '$lib/utils/diff';
@@ -38,9 +38,10 @@ export const load: PageServerLoad = async ({ params, url }) => {
 
 	try {
 		const cmp = await compareBranches(params.namespace, path, spec.base, spec.head);
-		const [before, after] = await Promise.all([
+		const [before, after, bs] = await Promise.all([
 			getPrompt(params.namespace, path, spec.base).catch(() => null),
-			getPrompt(params.namespace, path, spec.head).catch(() => null)
+			getPrompt(params.namespace, path, spec.head).catch(() => null),
+			branches(params.namespace, path).catch(() => [])
 		]);
 		// Same renderer as the commit view, driven by the server's hunk ranges.
 		const diff = cmp.identical
@@ -61,12 +62,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			namespace: params.namespace,
 			base: spec.base,
 			head: spec.head,
-			// No list-branches RPC: offer the conventional names plus the two
-			// being compared, so a branch like feature-x stays selectable.
-			branches: [...new Set([...KNOWN_BRANCHES, spec.base, spec.head])].map((name) => ({
-				name, isDefault: name === 'main', isServing: name === 'main',
-				lastCommit: { hash: '', message: '', author: '', date: '' }
-			})),
+			branches: bs,
 			comparison: {
 				commitsAhead: cmp.identical ? 0 : 1,
 				commitsBehind: 0,

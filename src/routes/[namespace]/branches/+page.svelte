@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { page } from '$app/state';
 	import { GitBranch, GitMerge, GitCompare, RotateCcw, ArrowUpRight } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import CreateBranchDialog from '$lib/components/branch/CreateBranchDialog.svelte';
@@ -16,17 +15,8 @@
 	const branchNames = $derived(data.branches.map((b) => b.name));
 	// Where main was before the last rollback, so it can be undone.
 	const previous = $derived(form && 'previous' in form ? (form.previous as string) : '');
-	const headDate = $derived(data.commits.find((c) => c.fullHash === data.head)?.date ?? '');
-	// Branch names this page was asked to look up (`?branch=`); there is no
-	// list-branches RPC, so a branch outside main/dev/staging/prod is found by name.
-	const asked = $derived(page.url.searchParams.getAll('branch'));
-	const created = $derived(form && 'created' in form ? (form.created as string) : '');
-
-	function showBranchHref(name: string) {
-		const qs = new URLSearchParams({ path: data.path });
-		for (const n of [...asked, name]) qs.append('branch', n);
-		return `/${data.namespace}/branches?${qs}`;
-	}
+	// Commits come newest first, so the ones listed above main's are newer.
+	const headIndex = $derived(data.commits.findIndex((c) => c.fullHash === data.head));
 
 	function choose(path: string) {
 		selected = path;
@@ -55,9 +45,6 @@
 	{:else if form?.ok}
 		<div role="status" class="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
 			{form.ok}
-			{#if created && data.path && !branchNames.includes(created)}
-				<a class="ml-1 underline" href={showBranchHref(created)}>Show {created}</a>
-			{/if}
 			{#if previous && data.path && previous !== data.head}
 				<form method="POST" action="?/rollback" use:enhance class="mt-2">
 					<input type="hidden" name="path" value={data.path} />
@@ -135,23 +122,6 @@
 					{data.live && !data.path ? 'Select a prompt to see its branches.' : 'No branches found.'}
 				</p>
 			{/each}
-			{#if data.live && data.path}
-				<!-- The server has no list-branches RPC: main, dev, staging and prod are
-				     checked automatically, and any other branch is looked up by name. -->
-				<form method="GET" class="flex flex-wrap items-center gap-2 border-t border-border/60 px-4 py-3">
-					<input type="hidden" name="path" value={data.path} />
-					{#each asked as n}<input type="hidden" name="branch" value={n} />{/each}
-					<label for="find-branch" class="text-xs text-muted-foreground">Show another branch</label>
-					<input
-						id="find-branch"
-						name="branch"
-						placeholder="feature-x"
-						required
-						class="w-40 rounded-md border border-border bg-background px-2 py-1 font-mono text-sm"
-					/>
-					<Button type="submit" variant="outline" size="sm">Show</Button>
-				</form>
-			{/if}
 		</div>
 	{/if}
 
@@ -192,10 +162,10 @@
 		<section class="rounded-lg border border-border bg-card p-4">
 			<h2 class="mb-1 text-sm font-semibold text-foreground">Rollback</h2>
 			<p class="mb-3 text-xs text-muted-foreground">
-				Point <code class="font-mono">main</code> at any commit on this prompt's branches. Nothing is deleted — the pointer moves, and agents pick it up immediately.
+				Point <code class="font-mono">main</code> at any commit of this prompt. Nothing is deleted — the pointer moves, and agents pick it up immediately.
 			</p>
 			<div class="divide-y divide-border/60">
-				{#each data.commits as c}
+				{#each data.commits as c, i}
 					<div class="flex flex-wrap items-center justify-between gap-3 py-2">
 						<div class="min-w-0">
 							<span class="font-mono text-xs text-muted-foreground">{c.hash}</span>
@@ -211,13 +181,13 @@
 								<input type="hidden" name="branch" value="main" />
 								<Button type="submit" variant="outline" size="sm">
 									<RotateCcw class="mr-1.5 h-3.5 w-3.5" />
-									{headDate && Date.parse(c.date) > Date.parse(headDate) ? 'Roll forward to here' : 'Roll back to here'}
+									{i < headIndex ? 'Roll forward to here' : 'Roll back to here'}
 								</Button>
 							</form>
 						{/if}
 					</div>
 				{:else}
-					<p class="py-2 text-sm text-muted-foreground">No commits on main.</p>
+					<p class="py-2 text-sm text-muted-foreground">No commits yet.</p>
 				{/each}
 			</div>
 		</section>
