@@ -59,27 +59,33 @@
 	<div class="flex items-center gap-1">
 		<Tooltip.Root>
 			<Tooltip.Trigger>
-				<Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
-					<Plus class="h-4 w-4" />
-				</Button>
+				{#snippet child({ props })}
+					<Button {...props} variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
+						<Plus class="h-4 w-4" />
+					</Button>
+				{/snippet}
 			</Tooltip.Trigger>
 			<Tooltip.Content><p>Create new</p></Tooltip.Content>
 		</Tooltip.Root>
 
 		<Tooltip.Root>
 			<Tooltip.Trigger>
-				<Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
-					<GitPullRequest class="h-4 w-4" />
-				</Button>
+				{#snippet child({ props })}
+					<Button {...props} variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
+						<GitPullRequest class="h-4 w-4" />
+					</Button>
+				{/snippet}
 			</Tooltip.Trigger>
 			<Tooltip.Content><p>Pull requests</p></Tooltip.Content>
 		</Tooltip.Root>
 
 		<Tooltip.Root>
 			<Tooltip.Trigger>
-				<Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
-					<Inbox class="h-4 w-4" />
-				</Button>
+				{#snippet child({ props })}
+					<Button {...props} variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
+						<Inbox class="h-4 w-4" />
+					</Button>
+				{/snippet}
 			</Tooltip.Trigger>
 			<Tooltip.Content><p>Inbox</p></Tooltip.Content>
 		</Tooltip.Root>

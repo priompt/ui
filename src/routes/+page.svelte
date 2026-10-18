@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { plural } from '$lib/utils/plural';
 	import { ArrowRight } from '@lucide/svelte';
 	import DashboardSidebar from '$lib/components/layout/DashboardSidebar.svelte';
 	import Footer from '$lib/components/layout/Footer.svelte';
@@ -47,8 +48,10 @@
 					<span class="text-sm text-link-blue group-hover:underline">
 						{data.live ? ns.name : `${ns.org}/${ns.name}`}
 					</span>
-					<span class="text-xs text-muted-foreground">{ns.promptCount} prompts</span>
-					<span class="text-xs text-muted-foreground">· {ns.updatedAt}</span>
+					<span class="text-xs text-muted-foreground">{plural(ns.promptCount, 'prompt')}</span>
+					{#if ns.updatedAt}
+						<span class="text-xs text-muted-foreground">· {ns.updatedAt}</span>
+					{/if}
 				</a>
 			{/each}
 		</div>

@@ -117,18 +117,22 @@
 			<p class="mb-3 text-xs text-muted-foreground">
 				Move this prompt from one environment onto another — the deliberate, recorded step.
 			</p>
-			<form method="POST" action="?/promote" use:enhance class="flex flex-wrap items-end gap-3">
+			<form
+				method="POST"
+				action="?/promote"
+				use:enhance={() => async ({ update }) => update({ reset: false })}
+				class="flex flex-wrap items-end gap-3">
 				<input type="hidden" name="path" value={data.path} />
 				<div>
 					<label for="pf" class="mb-1 block text-xs text-muted-foreground">From</label>
-					<select id="pf" name="from" bind:value={promoteFrom} class="rounded-md border border-border bg-background px-3 py-1.5 font-mono text-sm">
+					<select id="pf" name="from" bind:value={promoteFrom} class="rounded-md border border-border bg-background py-1.5 pl-3 pr-8 font-mono text-sm">
 						{#each data.known as n}<option value={n}>{n}</option>{/each}
 					</select>
 				</div>
 				<ArrowUpRight class="mb-2 h-4 w-4 text-muted-foreground" />
 				<div>
 					<label for="pt" class="mb-1 block text-xs text-muted-foreground">To</label>
-					<select id="pt" name="to" bind:value={promoteTo} class="rounded-md border border-border bg-background px-3 py-1.5 font-mono text-sm">
+					<select id="pt" name="to" bind:value={promoteTo} class="rounded-md border border-border bg-background py-1.5 pl-3 pr-8 font-mono text-sm">
 						{#each data.known as n}<option value={n}>{n}</option>{/each}
 					</select>
 				</div>
