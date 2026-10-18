@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
 	import { GitBranch, GitMerge, RotateCcw, ArrowUpRight } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import CreateBranchDialog from '$lib/components/branch/CreateBranchDialog.svelte';
@@ -13,6 +14,16 @@
 	let mergeFrom = $state('dev');
 
 	const branchNames = $derived(data.branches.map((b) => b.name));
+	// Branch names this page was asked to look up (`?branch=`); there is no
+	// list-branches RPC, so a branch outside main/dev/staging/prod is found by name.
+	const asked = $derived(page.url.searchParams.getAll('branch'));
+	const created = $derived(form && 'created' in form ? (form.created as string) : '');
+
+	function showBranchHref(name: string) {
+		const qs = new URLSearchParams({ path: data.path });
+		for (const n of [...asked, name]) qs.append('branch', n);
+		return `/${data.namespace}/branches?${qs}`;
+	}
 
 	function choose(path: string) {
 		selected = path;
@@ -41,6 +52,9 @@
 	{:else if form?.ok}
 		<p role="status" class="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
 			{form.ok}
+			{#if created && data.path && !branchNames.includes(created)}
+				<a class="ml-1 underline" href={showBranchHref(created)}>Show {created}</a>
+			{/if}
 		</p>
 	{/if}
 
@@ -105,6 +119,23 @@
 					{data.live && !data.path ? 'Select a prompt to see its branches.' : 'No branches found.'}
 				</p>
 			{/each}
+			{#if data.live && data.path}
+				<!-- The server has no list-branches RPC: main, dev, staging and prod are
+				     checked automatically, and any other branch is looked up by name. -->
+				<form method="GET" class="flex flex-wrap items-center gap-2 border-t border-border/60 px-4 py-3">
+					<input type="hidden" name="path" value={data.path} />
+					{#each asked as n}<input type="hidden" name="branch" value={n} />{/each}
+					<label for="find-branch" class="text-xs text-muted-foreground">Show another branch</label>
+					<input
+						id="find-branch"
+						name="branch"
+						placeholder="feature-x"
+						required
+						class="w-40 rounded-md border border-border bg-background px-2 py-1 font-mono text-sm"
+					/>
+					<Button type="submit" variant="outline" size="sm">Show</Button>
+				</form>
+			{/if}
 		</div>
 	{/if}
 

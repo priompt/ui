@@ -227,12 +227,13 @@ export function worstVerdict(changes: WireChange[]): string {
 	}))) ?? '';
 }
 
-export async function branches(namespace: string, path: string): Promise<Branch[]> {
+export async function branches(namespace: string, path: string, extra: string[] = []): Promise<Branch[]> {
 	// The API has no "list branches" RPC — branches are per prompt, and a branch
-	// is only observable by resolving it. Probe the conventional set and keep the
-	// ones that resolve, rather than inventing a server-side concept the contract
-	// does not have.
-	const names = ['main', 'dev', 'staging', 'prod'];
+	// is only observable by resolving it. Probe the conventional set, plus any
+	// names the caller has seen (a branch the user created or asked for), and
+	// keep the ones that resolve, rather than inventing a server-side concept the
+	// contract does not have.
+	const names = [...new Set([...KNOWN_BRANCHES, ...extra.map((n) => n.trim()).filter(Boolean)])];
 	const found: Branch[] = [];
 	for (const name of names) {
 		try {

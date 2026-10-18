@@ -15,6 +15,10 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	// refs and its own independent history. So the page needs a prompt selected,
 	// and offers the list to pick from.
 	const path = url.searchParams.get('path') ?? '';
+	// Branches beyond the conventional four can only be found by name, so the
+	// page carries the names it has been asked about in `?branch=`.
+	const extra = url.searchParams.getAll('branch').map((n) => n.trim()).filter(Boolean);
+	const known = [...new Set([...KNOWN_BRANCHES, ...extra])];
 	let prompts: string[] = [];
 	try {
 		// Carry the .prompt suffix so these match the paths used everywhere else
@@ -26,17 +30,17 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		// fall through — the error below will explain
 	}
 	if (!path) {
-		return { namespace: params.namespace, branches: [], prompts, path: '', commits: [], known: KNOWN_BRANCHES, live: true, error: null };
+		return { namespace: params.namespace, branches: [], prompts, path: '', commits: [], known, live: true, error: null };
 	}
 	try {
 		const [bs, log] = await Promise.all([
-			branches(params.namespace, path),
+			branches(params.namespace, path, extra),
 			history(params.namespace, path, 'main').catch(() => [])
 		]);
-		return { namespace: params.namespace, branches: bs, prompts, path, commits: log, known: KNOWN_BRANCHES, live: true, error: null };
+		return { namespace: params.namespace, branches: bs, prompts, path, commits: log, known, live: true, error: null };
 	} catch (e) {
 		const err = e as PriomptError;
-		return { namespace: params.namespace, branches: [], prompts, path, commits: [], known: KNOWN_BRANCHES, live: true, error: `${err.code}: ${err.message}` };
+		return { namespace: params.namespace, branches: [], prompts, path, commits: [], known, live: true, error: `${err.code}: ${err.message}` };
 	}
 };
 
@@ -57,7 +61,7 @@ export const actions: Actions = {
 		if (!path) return fail(400, { error: 'A branch belongs to a prompt; none was selected.', retryable: false });
 		try {
 			await createBranch(params.namespace, path, name, from);
-			return { ok: `Created ${name} from ${from}.` };
+			return { ok: `Created ${name} from ${from}.`, created: name };
 		} catch (e) {
 			return formError(e);
 		}

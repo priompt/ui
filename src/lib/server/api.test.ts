@@ -19,3 +19,24 @@ test('diffDraft sends the edit as new_template', async () => {
 		s.close();
 	}
 });
+
+test('branches lists any branch it is told about, not only the four conventional names', async () => {
+	// The bug this guards: the list was fixed to main/dev/staging/prod, so a
+	// branch such as feature-x, which the server accepts, could never be shown.
+	const commit = {
+		hash: 'a'.repeat(64), version_hash: 'b'.repeat(64), parent: '', parent2: '',
+		author: 'ana', message: 'x', created_at: '2026-10-18T00:00:00Z'
+	};
+	const s = await fakeServer({
+		History: (r) => {
+			if (r.branch === 'main' || r.branch === 'feature-x') return { commits: [commit] };
+			throw { code: 5, details: 'branch not found' };
+		}
+	});
+	try {
+		const bs = await s.api.branches('acme', 'support/agent.prompt', ['feature-x', 'main', 'missing']);
+		assert.deepEqual(bs.map((b) => b.name), ['main', 'feature-x']);
+	} finally {
+		s.close();
+	}
+});
