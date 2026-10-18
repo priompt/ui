@@ -3,7 +3,7 @@ import type { PageServerLoad } from './$types';
 import { parseBranchAndPath } from '$lib/utils/path';
 import { detectSlots } from '$lib/utils/slots';
 import { mockBranches, mockPromptContents } from '$lib/mocks/data';
-import { getPrompt } from '$lib/server/api';
+import { getPrompt, branches } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
 import { splitRef, httpStatus } from '$lib/server/source';
 
@@ -29,7 +29,12 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	const { branch, path } = splitRef(params.path);
 	try {
-		const p = await getPrompt(params.namespace, path, branch);
+		// The prompt's branches, for the branch switcher: switching is how you
+		// reach Edit and History on a branch other than main.
+		const [p, bs] = await Promise.all([
+			getPrompt(params.namespace, path, branch),
+			branches(params.namespace, path).catch(() => [])
+		]);
 		return {
 			namespace: params.namespace,
 			branch,
@@ -41,10 +46,9 @@ export const load: PageServerLoad = async ({ params }) => {
 			// validates them again on serve. Do not re-derive them in the browser.
 			slots: p.slots,
 			lastCommit: p.lastCommit,
-			branches: [
-				{ name: branch, isDefault: branch === 'main', isServing: branch === 'main',
-				  lastCommit: p.lastCommit }
-			],
+			branches: bs.some((b) => b.name === branch)
+				? bs
+				: [...bs, { name: branch, isDefault: branch === 'main', isServing: branch === 'main', lastCommit: p.lastCommit }],
 			live: true
 		};
 	} catch (e) {

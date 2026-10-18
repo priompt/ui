@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { GitBranch, GitMerge, RotateCcw, ArrowUpRight } from '@lucide/svelte';
+	import { GitBranch, GitMerge, GitCompare, RotateCcw, ArrowUpRight } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import CreateBranchDialog from '$lib/components/branch/CreateBranchDialog.svelte';
 
@@ -91,6 +91,9 @@
 					</div>
 					{#if data.live && data.path && !b.isDefault}
 						<form method="POST" action="?/merge" use:enhance class="flex items-center gap-2">
+							<Button variant="outline" size="sm" href="/{data.namespace}/compare/main...{b.name}?path={encodeURIComponent(data.path)}">
+								<GitCompare class="mr-1.5 h-3.5 w-3.5" /> Compare
+							</Button>
 							<input type="hidden" name="path" value={data.path} />
 							<input type="hidden" name="from" value={b.name} />
 							<input type="hidden" name="into" value="main" />
