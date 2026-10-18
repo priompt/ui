@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package priompt.v1;
 
-option go_package = "priomptproto/gen/priompt/v1;priomptv1";
+option go_package = "github.com/priompt/proto/gen/priompt/v1;priomptv1";
 
 // PromptService serves validated prompts. Phase 1 is read-only over the wire;
 // writes happen via the `priompt put` CLI until promptctl lands (Phase 3).
@@ -11,6 +11,9 @@ service PromptService {
   // DiffPrompt runs the Semantic Propagation Diff between the stored prompt at
   // `uri` (the original) and `new_template` (the edit), using the embedding
   // model the server operator configured at startup.
+  // DiffPromptResponse is shared with DiffCommits on purpose (same result shape);
+  // splitting it would break the Go API and buf breaking.
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
   rpc DiffPrompt(DiffPromptRequest) returns (DiffPromptResponse);
   // PublishPrompt validates and stores a new prompt version on the server, then
   // notifies subscribers over NATS. This is the write-through path that makes a
@@ -24,7 +27,9 @@ service PromptService {
   // MergeBranch merges `from` into `into`, recording a two-parent merge commit.
   rpc MergeBranch(MergeBranchRequest) returns (MergeBranchResponse);
   // DiffCommits runs the semantic diff between any two commits of a prompt — the
-  // query-anything-in-history path.
+  // query-anything-in-history path. Returns DiffPromptResponse (see DiffPrompt).
+  // buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+  // buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
   rpc DiffCommits(DiffCommitsRequest) returns (DiffPromptResponse);
   // SetBranch points a branch at an existing commit — the rollback / pin path.
   // Moving "main" instantly changes the served version.
@@ -34,6 +39,32 @@ service PromptService {
   // prompt whose URI starts with `prefix`, sorted. A "repo" is just a URI prefix;
   // the caller derives the tree by splitting URIs on "/".
   rpc ListPrompts(ListPromptsRequest) returns (ListPromptsResponse);
+
+  // ListBranches returns every branch of a prompt and the commit it points at,
+  // sorted by name.
+  rpc ListBranches(ListBranchesRequest) returns (ListBranchesResponse);
+  // ListCommits returns every commit of a prompt, newest first, including
+  // commits no branch reaches any more (e.g. after a rollback) — the
+  // roll-forward path. History is one branch's first-parent log.
+  rpc ListCommits(ListCommitsRequest) returns (ListCommitsResponse);
+}
+
+message ListBranchesRequest {
+  string uri = 1;
+}
+message ListBranchesResponse {
+  repeated Branch branches = 1;
+}
+message Branch {
+  string name = 1;
+  string commit_hash = 2; // the branch tip
+}
+
+message ListCommitsRequest {
+  string uri = 1;
+}
+message ListCommitsResponse {
+  repeated Commit commits = 1;
 }
 
 message ListPromptsRequest {
@@ -64,7 +95,11 @@ message Commit {
   string parent2 = 4; // set only on merge commits
   string author = 5;
   string message = 6;
-  string created_at = 7; // RFC3339
+  // UTC timestamp in RFC 3339 with variable-length fractional seconds
+  // (Go time.RFC3339Nano: 0-9 digits, trailing zeros trimmed), e.g.
+  // "2026-10-18T04:45:25.5540023Z". Parse with an RFC 3339 parser that accepts
+  // fractional seconds; do not assume a fixed width.
+  string created_at = 7;
 }
 
 message HistoryRequest {

@@ -14,15 +14,15 @@
  * a leaked token is the whole org. It stays in this process.
  */
 import { createRequire } from 'node:module';
-import { fileURLToPath } from 'node:url';
 import { env } from '$env/dynamic/private';
+// Bundled as text rather than read from disk: a built server runs from
+// .svelte-kit/ or build/, where a path relative to this module doesn't reach proto/.
+import PROTO_SOURCE from '../../../proto/priompt/v1/prompt.proto?raw';
 
 const require = createRequire(import.meta.url);
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
-
-// fileURLToPath, not URL.pathname: on Windows .pathname is "/C:/...", which fs can't open.
-const PROTO_PATH = fileURLToPath(new URL('../../../proto/priompt/v1/prompt.proto', import.meta.url));
+const protobuf = require('protobufjs');
 
 export interface PriomptConfig {
 	host: string;
@@ -82,8 +82,8 @@ function stub(): { stub: Stub; meta: unknown } {
 
 	const key = `${cfg.host}|${cfg.tls}`;
 	if (!cached || cached.key !== key) {
-		const def = protoLoader.loadSync(PROTO_PATH, {
-			keepCase: true,
+		const root = protobuf.parse(PROTO_SOURCE, { keepCase: true }).root;
+		const def = protoLoader.fromJSON(root.toJSON(), {
 			longs: String,
 			enums: String,
 			defaults: true,

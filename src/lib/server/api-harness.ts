@@ -4,7 +4,8 @@
  *
  * `api.ts` is written for SvelteKit — it imports `$env/dynamic/private` and
  * `$lib/...` and leaves extensions off relative imports — so plain node cannot
- * load it. The module hooks below supply those three things, and compile the
+ * load it. The module hooks below supply those three things (and Vite's `?raw`
+ * import, for the bundled proto), and compile the
  * TypeScript that node's type stripping refuses (client.ts uses parameter
  * properties). That lets the tests exercise the request the UI actually puts
  * on the wire. That is the layer where field-name mistakes hide: protobuf silently
@@ -30,6 +31,7 @@ export async function loadApi(): Promise<typeof import('./api.ts')> {
 					return { url: 'data:text/javascript,export const env = process.env;', shortCircuit: true };
 				}
 				if (specifier.startsWith('$lib/')) specifier = new URL(specifier.slice(5), LIB).href;
+				if (specifier.endsWith('?raw')) return { url: new URL(specifier, context.parentURL).href, shortCircuit: true };
 				try {
 					return next(specifier, context);
 				} catch (e) {
@@ -40,6 +42,10 @@ export async function loadApi(): Promise<typeof import('./api.ts')> {
 				}
 			},
 			load(url, context, next) {
+				if (url.endsWith('?raw')) {
+					const text = readFileSync(fileURLToPath(url.slice(0, -'?raw'.length)), 'utf8');
+					return { format: 'module', source: `export default ${JSON.stringify(text)};`, shortCircuit: true };
+				}
 				if (!url.startsWith('file:') || !url.endsWith('.ts')) return next(url, context);
 				const source = stripTypeScriptTypes(readFileSync(fileURLToPath(url), 'utf8'), { mode: 'transform' });
 				return { format: 'module', source, shortCircuit: true };
