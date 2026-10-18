@@ -24,7 +24,10 @@ export interface PromptFile {
 
 export interface CommitSummary {
 	hash: string;
+	/** The subject line. Lists show only this. */
 	message: string;
+	/** Anything after the subject's blank line: the commit dialog's description. */
+	body?: string;
 	author: string;
 	authorAvatar?: string;
 	date: string;

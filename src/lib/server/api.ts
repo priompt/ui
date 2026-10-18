@@ -17,6 +17,7 @@
 import { call, PriomptError } from './client';
 import type { Branch, Commit, CommitSummary, Namespace, PromptContent, PromptFile } from '$lib/types';
 import { worstVerdict as verdictOf } from '$lib/utils/diff';
+import { splitMessage } from '$lib/utils/commit';
 
 export { SCHEME, SUFFIX, toURI, fromURI } from './uri';
 import { SCHEME, SUFFIX, toURI, fromURI } from './uri';
@@ -49,10 +50,12 @@ export interface CommitRef extends CommitSummary {
 
 function summary(c: WireCommit | undefined): CommitRef {
 	if (!c) return { hash: '', fullHash: '', message: '', author: '', date: '' };
+	const { subject, body } = splitMessage(c.message);
 	return {
 		hash: c.hash.slice(0, 7),
 		fullHash: c.hash,
-		message: c.message || '(no message)',
+		message: subject || '(no message)',
+		body,
 		author: c.author || 'unknown',
 		date: c.created_at
 	};

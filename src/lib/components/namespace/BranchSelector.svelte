@@ -15,11 +15,13 @@
 
 <DropdownMenu.Root>
 	<DropdownMenu.Trigger>
-		<Button variant="outline" size="sm" class="h-8 gap-1.5 border-border/50 px-3 text-sm">
-			<GitBranch class="h-3.5 w-3.5" />
-			<span class="font-medium">{current}</span>
-			<ChevronDown class="h-3.5 w-3.5 text-muted-foreground" />
-		</Button>
+		{#snippet child({ props })}
+			<Button {...props} variant="outline" size="sm" class="h-8 gap-1.5 border-border/50 px-3 text-sm">
+				<GitBranch class="h-3.5 w-3.5" />
+				<span class="font-medium">{current}</span>
+				<ChevronDown class="h-3.5 w-3.5 text-muted-foreground" />
+			</Button>
+		{/snippet}
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content align="start" class="w-64">
 		<DropdownMenu.Label>Switch branches</DropdownMenu.Label>

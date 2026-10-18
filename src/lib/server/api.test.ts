@@ -40,3 +40,18 @@ test('branches lists any branch it is told about, not only the four conventional
 		s.close();
 	}
 });
+
+test('history keeps the subject as the message and the description as the body', async () => {
+	const commit = {
+		hash: 'a'.repeat(64), version_hash: 'b'.repeat(64), parent: '', parent2: '',
+		author: 'ana', message: 'Tighten tone\n\nShorter greeting.', created_at: '2026-10-18T00:00:00Z'
+	};
+	const s = await fakeServer({ History: () => ({ commits: [commit] }) });
+	try {
+		const [c] = await s.api.history('acme', 'support/agent.prompt', 'main');
+		assert.equal(c.message, 'Tighten tone');
+		assert.equal(c.body, 'Shorter greeting.');
+	} finally {
+		s.close();
+	}
+});
