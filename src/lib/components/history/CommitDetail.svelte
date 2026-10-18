@@ -17,6 +17,9 @@
 <!-- Commit header — full width, no card wrapping -->
 <div class="border-b border-border pb-5 mb-6">
   <h1 class="text-xl font-semibold text-foreground leading-snug">{commit.message}</h1>
+  {#if commit.body}
+    <p class="mt-2 whitespace-pre-line text-sm text-muted-foreground">{commit.body}</p>
+  {/if}
   <div class="mt-3 flex items-center gap-3 text-sm">
     <!-- Author pill -->
     <div class="flex items-center gap-1.5">
