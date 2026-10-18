@@ -24,7 +24,7 @@
 
 <div class="overflow-hidden rounded-lg border border-border">
 	<!-- Commit header row (like GitHub) -->
-	{#if latestCommit}
+	{#if latestCommit?.hash}
 		<div class="flex items-center justify-between border-b border-border bg-[#161b22] px-4 py-2.5">
 			<div class="flex items-center gap-2.5 min-w-0">
 				<Avatar.Root class="h-5 w-5 shrink-0">
