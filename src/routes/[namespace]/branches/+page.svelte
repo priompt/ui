@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { GitBranch, GitMerge, RotateCcw, ArrowUpRight } from '@lucide/svelte';
+	import { page } from '$app/state';
+	import { GitBranch, GitMerge, GitCompare, RotateCcw, ArrowUpRight } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import CreateBranchDialog from '$lib/components/branch/CreateBranchDialog.svelte';
 
@@ -16,6 +17,16 @@
 	// Where main was before the last rollback, so it can be undone.
 	const previous = $derived(form && 'previous' in form ? (form.previous as string) : '');
 	const headDate = $derived(data.commits.find((c) => c.fullHash === data.head)?.date ?? '');
+	// Branch names this page was asked to look up (`?branch=`); there is no
+	// list-branches RPC, so a branch outside main/dev/staging/prod is found by name.
+	const asked = $derived(page.url.searchParams.getAll('branch'));
+	const created = $derived(form && 'created' in form ? (form.created as string) : '');
+
+	function showBranchHref(name: string) {
+		const qs = new URLSearchParams({ path: data.path });
+		for (const n of [...asked, name]) qs.append('branch', n);
+		return `/${data.namespace}/branches?${qs}`;
+	}
 
 	function choose(path: string) {
 		selected = path;
@@ -44,6 +55,9 @@
 	{:else if form?.ok}
 		<div role="status" class="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
 			{form.ok}
+			{#if created && data.path && !branchNames.includes(created)}
+				<a class="ml-1 underline" href={showBranchHref(created)}>Show {created}</a>
+			{/if}
 			{#if previous && data.path && previous !== data.head}
 				<form method="POST" action="?/rollback" use:enhance class="mt-2">
 					<input type="hidden" name="path" value={data.path} />
@@ -104,6 +118,9 @@
 					</div>
 					{#if data.live && data.path && !b.isDefault}
 						<form method="POST" action="?/merge" use:enhance class="flex items-center gap-2">
+							<Button variant="outline" size="sm" href="/{data.namespace}/compare/main...{b.name}?path={encodeURIComponent(data.path)}">
+								<GitCompare class="mr-1.5 h-3.5 w-3.5" /> Compare
+							</Button>
 							<input type="hidden" name="path" value={data.path} />
 							<input type="hidden" name="from" value={b.name} />
 							<input type="hidden" name="into" value="main" />
@@ -118,6 +135,23 @@
 					{data.live && !data.path ? 'Select a prompt to see its branches.' : 'No branches found.'}
 				</p>
 			{/each}
+			{#if data.live && data.path}
+				<!-- The server has no list-branches RPC: main, dev, staging and prod are
+				     checked automatically, and any other branch is looked up by name. -->
+				<form method="GET" class="flex flex-wrap items-center gap-2 border-t border-border/60 px-4 py-3">
+					<input type="hidden" name="path" value={data.path} />
+					{#each asked as n}<input type="hidden" name="branch" value={n} />{/each}
+					<label for="find-branch" class="text-xs text-muted-foreground">Show another branch</label>
+					<input
+						id="find-branch"
+						name="branch"
+						placeholder="feature-x"
+						required
+						class="w-40 rounded-md border border-border bg-background px-2 py-1 font-mono text-sm"
+					/>
+					<Button type="submit" variant="outline" size="sm">Show</Button>
+				</form>
+			{/if}
 		</div>
 	{/if}
 
@@ -130,18 +164,22 @@
 			<p class="mb-3 text-xs text-muted-foreground">
 				Move this prompt from one environment onto another — the deliberate, recorded step.
 			</p>
-			<form method="POST" action="?/promote" use:enhance class="flex flex-wrap items-end gap-3">
+			<form
+				method="POST"
+				action="?/promote"
+				use:enhance={() => async ({ update }) => update({ reset: false })}
+				class="flex flex-wrap items-end gap-3">
 				<input type="hidden" name="path" value={data.path} />
 				<div>
 					<label for="pf" class="mb-1 block text-xs text-muted-foreground">From</label>
-					<select id="pf" name="from" bind:value={promoteFrom} class="rounded-md border border-border bg-background px-3 py-1.5 font-mono text-sm">
+					<select id="pf" name="from" bind:value={promoteFrom} class="rounded-md border border-border bg-background py-1.5 pl-3 pr-8 font-mono text-sm">
 						{#each data.known as n}<option value={n}>{n}</option>{/each}
 					</select>
 				</div>
 				<ArrowUpRight class="mb-2 h-4 w-4 text-muted-foreground" />
 				<div>
 					<label for="pt" class="mb-1 block text-xs text-muted-foreground">To</label>
-					<select id="pt" name="to" bind:value={promoteTo} class="rounded-md border border-border bg-background px-3 py-1.5 font-mono text-sm">
+					<select id="pt" name="to" bind:value={promoteTo} class="rounded-md border border-border bg-background py-1.5 pl-3 pr-8 font-mono text-sm">
 						{#each data.known as n}<option value={n}>{n}</option>{/each}
 					</select>
 				</div>

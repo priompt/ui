@@ -8,6 +8,7 @@
   import { applyAction, deserialize } from '$app/forms';
   import { mockPromptContents, mockCommits } from '$lib/mocks/data';
   import { validateTemplate } from '$lib/utils/slots';
+  import { commitMessage } from '$lib/utils/commit';
 
   let { data } = $props();
   let content = $state(data.content);
@@ -49,6 +50,7 @@
   async function handleCommit(commitData: { message: string; description: string; branch: string }) {
     saveError = null;
     retryable = false;
+    const message = commitMessage(commitData.message, commitData.description);
 
     if (!data.live) {
       // No server configured: keep the fixture behaviour so the prototype still
@@ -56,7 +58,7 @@
       if (mockPromptContents[data.filePath]) mockPromptContents[data.filePath].content = content;
       mockCommits.unshift({
         hash: Math.random().toString(36).slice(2, 9),
-        message: commitData.message,
+        message,
         author: 'You',
         date: new Date().toISOString(),
         files: [data.filePath],
@@ -71,7 +73,7 @@
     try {
       const result = await post('save', {
         content,
-        message: commitData.message,
+        message,
         branch: commitData.branch
       });
       if (result.type === 'success') {

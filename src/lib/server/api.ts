@@ -17,6 +17,7 @@
 import { call, PriomptError } from './client';
 import type { Branch, Commit, CommitSummary, Namespace, PromptContent, PromptFile } from '$lib/types';
 import { worstVerdict as verdictOf } from '$lib/utils/diff';
+import { splitMessage } from '$lib/utils/commit';
 
 export { SCHEME, SUFFIX, toURI, fromURI } from './uri';
 import { SCHEME, SUFFIX, toURI, fromURI } from './uri';
@@ -49,10 +50,12 @@ export interface CommitRef extends CommitSummary {
 
 function summary(c: WireCommit | undefined): CommitRef {
 	if (!c) return { hash: '', fullHash: '', message: '', author: '', date: '' };
+	const { subject, body } = splitMessage(c.message);
 	return {
 		hash: c.hash.slice(0, 7),
 		fullHash: c.hash,
-		message: c.message || '(no message)',
+		message: subject || '(no message)',
+		body,
 		author: c.author || 'unknown',
 		date: c.created_at
 	};
@@ -246,12 +249,13 @@ export function worstVerdict(changes: WireChange[]): string {
 	}))) ?? '';
 }
 
-export async function branches(namespace: string, path: string): Promise<Branch[]> {
+export async function branches(namespace: string, path: string, extra: string[] = []): Promise<Branch[]> {
 	// The API has no "list branches" RPC — branches are per prompt, and a branch
-	// is only observable by resolving it. Probe the conventional set and keep the
-	// ones that resolve, rather than inventing a server-side concept the contract
-	// does not have.
-	const names = ['main', 'dev', 'staging', 'prod'];
+	// is only observable by resolving it. Probe the conventional set, plus any
+	// names the caller has seen (a branch the user created or asked for), and
+	// keep the ones that resolve, rather than inventing a server-side concept the
+	// contract does not have.
+	const names = [...new Set([...KNOWN_BRANCHES, ...extra.map((n) => n.trim()).filter(Boolean)])];
 	const found: Branch[] = [];
 	for (const name of names) {
 		try {

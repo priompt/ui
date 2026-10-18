@@ -61,7 +61,9 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			namespace: params.namespace,
 			base: spec.base,
 			head: spec.head,
-			branches: KNOWN_BRANCHES.map((name) => ({
+			// No list-branches RPC: offer the conventional names plus the two
+			// being compared, so a branch like feature-x stays selectable.
+			branches: [...new Set([...KNOWN_BRANCHES, spec.base, spec.head])].map((name) => ({
 				name, isDefault: name === 'main', isServing: name === 'main',
 				lastCommit: { hash: '', message: '', author: '', date: '' }
 			})),

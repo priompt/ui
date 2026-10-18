@@ -84,7 +84,7 @@
           <select
             id="commit-branch-select"
             bind:value={selectedBranch}
-            class="rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            class="rounded-md border border-border bg-background py-1.5 pl-3 pr-8 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {#each branches as branch}
               <option value={branch.name}>{branch.name}</option>

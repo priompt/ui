@@ -21,9 +21,11 @@
 	</Button>
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger>
-			<Button variant="outline" size="icon" class="h-8 w-8">
-				<MoreHorizontal class="h-4 w-4" />
-			</Button>
+			{#snippet child({ props })}
+				<Button {...props} variant="outline" size="icon" class="h-8 w-8">
+					<MoreHorizontal class="h-4 w-4" />
+				</Button>
+			{/snippet}
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content align="end">
 			<DropdownMenu.Item>Clone namespace</DropdownMenu.Item>

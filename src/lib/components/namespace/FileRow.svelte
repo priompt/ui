@@ -25,7 +25,7 @@
 
 	<!-- Commit message -->
 	<div class="flex-1 min-w-0">
-		<a href="/{namespace}/commit/{file.lastCommit.hash}" class="truncate block text-sm text-muted-foreground hover:text-link-blue hover:underline">
+		<a href="/{namespace}/commits/{branch}/{file.path}" class="truncate block text-sm text-muted-foreground hover:text-link-blue hover:underline">
 			{file.lastCommit.message}
 		</a>
 	</div>
@@ -36,13 +36,15 @@
 	<!-- Overflow menu -->
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger>
-			<Button
-				variant="ghost"
-				size="icon"
-				class="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-			>
-				<MoreHorizontal class="h-3.5 w-3.5" />
-			</Button>
+			{#snippet child({ props })}
+				<Button {...props}
+					variant="ghost"
+					size="icon"
+					class="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+				>
+					<MoreHorizontal class="h-3.5 w-3.5" />
+				</Button>
+			{/snippet}
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content align="end">
 			<DropdownMenu.Item onSelect={() => goto(`/${namespace}/blob/${branch}/${file.path}`)}>View file</DropdownMenu.Item>

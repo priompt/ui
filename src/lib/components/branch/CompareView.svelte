@@ -69,15 +69,15 @@
     <div class="flex items-center gap-6 rounded-lg border border-border bg-card p-4">
       <div class="text-sm">
         <span class="font-medium text-foreground">{comparison.commitsAhead}</span>
-        <span class="text-muted-foreground"> commits ahead</span>
+        <span class="text-muted-foreground"> {comparison.commitsAhead === 1 ? 'commit' : 'commits'} ahead</span>
       </div>
       <div class="text-sm">
         <span class="font-medium text-foreground">{comparison.commitsBehind}</span>
-        <span class="text-muted-foreground"> commits behind</span>
+        <span class="text-muted-foreground"> {comparison.commitsBehind === 1 ? 'commit' : 'commits'} behind</span>
       </div>
       <div class="text-sm">
         <span class="font-medium text-foreground">{comparison.filesChanged}</span>
-        <span class="text-muted-foreground"> files changed</span>
+        <span class="text-muted-foreground"> {comparison.filesChanged === 1 ? 'file' : 'files'} changed</span>
       </div>
     </div>
 

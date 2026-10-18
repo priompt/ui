@@ -24,5 +24,19 @@
     <span class="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">{data.commits.length}</span>
   </div>
 
-  <CommitTimeline commits={data.commits} namespace={data.namespace} path={data.filePath} />
+  {#if data.live && !data.filePath}
+    <!-- History is per prompt: each prompt has its own chain, so pick one. -->
+    <p class="mb-3 text-sm text-muted-foreground">History is per prompt. Pick a prompt to see its commits.</p>
+    <ul class="divide-y divide-border/60 rounded-lg border border-border bg-card">
+      {#each data.prompts ?? [] as p}
+        <li>
+          <a class="block px-4 py-2 font-mono text-sm text-foreground hover:text-link-blue" href="/{data.namespace}/commits/{data.branch}/{p}">{p}</a>
+        </li>
+      {:else}
+        <li class="px-4 py-3 text-sm text-muted-foreground">No prompts in this namespace.</li>
+      {/each}
+    </ul>
+  {:else}
+    <CommitTimeline commits={data.commits} namespace={data.namespace} path={data.filePath} />
+  {/if}
 </div>

@@ -7,8 +7,11 @@
 	import { Kbd } from '$lib/components/ui/kbd';
 	import SearchDialog from './SearchDialog.svelte';
 	import { toggleSidebar } from '$lib/stores/mobile-sidebar.svelte';
+	import { page } from '$app/state';
 
 	let searchOpen = $state(false);
+	// Inside a namespace the search box searches its prompts (paths and content).
+	const namespace = $derived(page.params.namespace ?? '');
 </script>
 
 <svelte:window
@@ -44,6 +47,21 @@
 
 	<!-- Center section: search bar -->
 	<div class="hidden md:block">
+		{#if namespace}
+		<form action="/{namespace}/search" method="GET" role="search" class="flex h-8 w-72 items-center gap-2 rounded-md border border-border px-3 text-sm text-muted-foreground focus-within:border-muted-foreground/50">
+			<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true">
+				<circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+			</svg>
+			<input
+				name="q"
+				type="search"
+				aria-label="Search {namespace}"
+				placeholder="Search {namespace}…"
+				value={page.url.pathname === `/${namespace}/search` ? (page.url.searchParams.get('q') ?? '') : ''}
+				class="h-full flex-1 border-0 bg-transparent p-0 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+			/>
+		</form>
+		{:else}
 		<button
 			onclick={() => (searchOpen = true)}
 			class="flex h-8 w-72 items-center gap-2 rounded-md border border-border bg-transparent px-3 text-sm text-muted-foreground transition-colors hover:border-muted-foreground/50"
@@ -53,33 +71,40 @@
 			</svg>
 			<span class="flex-1 text-left">Type <Kbd class="ml-1 text-xs">/</Kbd> to search</span>
 		</button>
+		{/if}
 	</div>
 
 	<!-- Right section: actions + avatar -->
 	<div class="flex items-center gap-1">
 		<Tooltip.Root>
 			<Tooltip.Trigger>
-				<Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
-					<Plus class="h-4 w-4" />
-				</Button>
+				{#snippet child({ props })}
+					<Button {...props} variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
+						<Plus class="h-4 w-4" />
+					</Button>
+				{/snippet}
 			</Tooltip.Trigger>
 			<Tooltip.Content><p>Create new</p></Tooltip.Content>
 		</Tooltip.Root>
 
 		<Tooltip.Root>
 			<Tooltip.Trigger>
-				<Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
-					<GitPullRequest class="h-4 w-4" />
-				</Button>
+				{#snippet child({ props })}
+					<Button {...props} variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
+						<GitPullRequest class="h-4 w-4" />
+					</Button>
+				{/snippet}
 			</Tooltip.Trigger>
 			<Tooltip.Content><p>Pull requests</p></Tooltip.Content>
 		</Tooltip.Root>
 
 		<Tooltip.Root>
 			<Tooltip.Trigger>
-				<Button variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
-					<Inbox class="h-4 w-4" />
-				</Button>
+				{#snippet child({ props })}
+					<Button {...props} variant="ghost" size="icon" class="h-8 w-8 text-muted-foreground hover:text-foreground">
+						<Inbox class="h-4 w-4" />
+					</Button>
+				{/snippet}
 			</Tooltip.Trigger>
 			<Tooltip.Content><p>Inbox</p></Tooltip.Content>
 		</Tooltip.Root>
