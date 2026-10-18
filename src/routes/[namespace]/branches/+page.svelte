@@ -13,6 +13,9 @@
 	let mergeFrom = $state('dev');
 
 	const branchNames = $derived(data.branches.map((b) => b.name));
+	// Where main was before the last rollback, so it can be undone.
+	const previous = $derived(form && 'previous' in form ? (form.previous as string) : '');
+	const headDate = $derived(data.commits.find((c) => c.fullHash === data.head)?.date ?? '');
 
 	function choose(path: string) {
 		selected = path;
@@ -39,9 +42,19 @@
 			{#if form.retryable}<span class="block text-xs opacity-80">Safe to retry — nothing was lost.</span>{/if}
 		</p>
 	{:else if form?.ok}
-		<p role="status" class="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+		<div role="status" class="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
 			{form.ok}
-		</p>
+			{#if previous && data.path && previous !== data.head}
+				<form method="POST" action="?/rollback" use:enhance class="mt-2">
+					<input type="hidden" name="path" value={data.path} />
+					<input type="hidden" name="commit" value={previous} />
+					<input type="hidden" name="branch" value="main" />
+					<Button type="submit" variant="outline" size="sm">
+						<RotateCcw class="mr-1.5 h-3.5 w-3.5" /> Undo: move main back to {previous.slice(0, 7)}
+					</Button>
+				</form>
+			{/if}
+		</div>
 	{/if}
 
 	{#if data.live}
@@ -141,17 +154,17 @@
 		<section class="rounded-lg border border-border bg-card p-4">
 			<h2 class="mb-1 text-sm font-semibold text-foreground">Rollback</h2>
 			<p class="mb-3 text-xs text-muted-foreground">
-				Point <code class="font-mono">main</code> at an earlier commit. Nothing is deleted — the pointer moves, and agents pick it up immediately.
+				Point <code class="font-mono">main</code> at any commit on this prompt's branches. Nothing is deleted — the pointer moves, and agents pick it up immediately.
 			</p>
 			<div class="divide-y divide-border/60">
-				{#each data.commits as c, i}
+				{#each data.commits as c}
 					<div class="flex flex-wrap items-center justify-between gap-3 py-2">
 						<div class="min-w-0">
 							<span class="font-mono text-xs text-muted-foreground">{c.hash}</span>
 							<span class="ml-2 text-sm text-foreground">{c.message}</span>
 							<span class="ml-2 text-xs text-muted-foreground">{c.author}</span>
 						</div>
-						{#if i === 0}
+						{#if c.fullHash === data.head}
 							<span class="text-xs text-emerald-300">current</span>
 						{:else}
 							<form method="POST" action="?/rollback" use:enhance>
@@ -159,7 +172,8 @@
 								<input type="hidden" name="commit" value={c.fullHash} />
 								<input type="hidden" name="branch" value="main" />
 								<Button type="submit" variant="outline" size="sm">
-									<RotateCcw class="mr-1.5 h-3.5 w-3.5" /> Roll back to here
+									<RotateCcw class="mr-1.5 h-3.5 w-3.5" />
+									{headDate && Date.parse(c.date) > Date.parse(headDate) ? 'Roll forward to here' : 'Roll back to here'}
 								</Button>
 							</form>
 						{/if}

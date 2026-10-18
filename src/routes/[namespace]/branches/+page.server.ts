@@ -2,13 +2,13 @@ import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { mockBranches } from '$lib/mocks/data';
 import {
-	branches, createBranch, mergeBranch, promote, rollback, history, listAll, fromURI, KNOWN_BRANCHES, SUFFIX
+	branches, createBranch, mergeBranch, promote, rollback, history, promptLog, listAll, fromURI, KNOWN_BRANCHES, SUFFIX
 } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	if (!isLive()) {
-		return { namespace: params.namespace, branches: mockBranches, prompts: [], path: '', commits: [], known: KNOWN_BRANCHES, live: false, error: null };
+		return { namespace: params.namespace, branches: mockBranches, prompts: [], path: '', commits: [], head: '', known: KNOWN_BRANCHES, live: false, error: null };
 	}
 
 	// Branches belong to a prompt, not to a namespace: each prompt has its own
@@ -26,17 +26,22 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		// fall through — the error below will explain
 	}
 	if (!path) {
-		return { namespace: params.namespace, branches: [], prompts, path: '', commits: [], known: KNOWN_BRANCHES, live: true, error: null };
+		return { namespace: params.namespace, branches: [], prompts, path: '', commits: [], head: '', known: KNOWN_BRANCHES, live: true, error: null };
 	}
 	try {
-		const [bs, log] = await Promise.all([
+		// The Rollback list is every commit on any branch, not only main's
+		// ancestors: after a rollback, main's later commits are no longer in its
+		// log, and rolling forward needs them.
+		const [bs, log, mainLog] = await Promise.all([
 			branches(params.namespace, path),
+			promptLog(params.namespace, path),
 			history(params.namespace, path, 'main').catch(() => [])
 		]);
-		return { namespace: params.namespace, branches: bs, prompts, path, commits: log, known: KNOWN_BRANCHES, live: true, error: null };
+		const head = mainLog[0]?.fullHash ?? '';
+		return { namespace: params.namespace, branches: bs, prompts, path, commits: log, head, known: KNOWN_BRANCHES, live: true, error: null };
 	} catch (e) {
 		const err = e as PriomptError;
-		return { namespace: params.namespace, branches: [], prompts, path, commits: [], known: KNOWN_BRANCHES, live: true, error: `${err.code}: ${err.message}` };
+		return { namespace: params.namespace, branches: [], prompts, path, commits: [], head: '', known: KNOWN_BRANCHES, live: true, error: `${err.code}: ${err.message}` };
 	}
 };
 
@@ -105,8 +110,11 @@ export const actions: Actions = {
 		const branch = String(f.get('branch') ?? 'main');
 		if (!path || !commit) return fail(400, { error: 'Rollback needs a prompt and a commit.', retryable: false });
 		try {
+			// Remember where the branch was, so the page can offer to undo — a
+			// commit no branch reaches any more cannot be listed afterwards.
+			const previous = (await history(params.namespace, path, branch).catch(() => []))[0]?.fullHash ?? '';
 			await rollback(params.namespace, path, commit, branch);
-			return { ok: `${branch} now points at ${commit.slice(0, 7)}. Agents see it immediately.` };
+			return { ok: `${branch} now points at ${commit.slice(0, 7)}. Agents see it immediately.`, previous };
 		} catch (e) {
 			return formError(e);
 		}

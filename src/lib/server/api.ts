@@ -182,6 +182,25 @@ export async function history(
 }
 
 /**
+ * Every commit reachable from any of the named branches, newest first.
+ *
+ * History is first-parent from one branch tip, so once main is rolled back its
+ * later commits drop out of main's log. Those that are still on another branch
+ * (dev, staging, …) can be found from that branch's log and rolled forward to.
+ * A commit that no branch reaches cannot be listed: the API has no RPC for it.
+ */
+export async function promptLog(
+	namespace: string,
+	path: string,
+	names: string[] = KNOWN_BRANCHES
+): Promise<CommitRef[]> {
+	const logs = await Promise.all(names.map((n) => history(namespace, path, n).catch(() => [])));
+	const seen = new Map<string, CommitRef>();
+	for (const c of logs.flat()) if (!seen.has(c.fullHash)) seen.set(c.fullHash, c);
+	return [...seen.values()].sort((a, b) => Date.parse(b.date) - Date.parse(a.date));
+}
+
+/**
  * The semantic diff between two commits — the verdict the product exists to
  * produce, and which this UI previously did not show anywhere.
  */
