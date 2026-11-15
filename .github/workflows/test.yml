@@ -1,0 +1,35 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24 # the test runner needs Node 22.18+ (type stripping, --test globs)
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm test
+      - run: pnpm build
+
+  # The UI vendors the PromptService contract; fail when it drifts from the
+  # proto repo instead of finding out from a broken RPC.
+  proto:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: priompt/proto
+          path: upstream-proto
+      - run: diff -u upstream-proto/proto/priompt/v1/prompt.proto proto/priompt/v1/prompt.proto
