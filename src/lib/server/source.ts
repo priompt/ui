@@ -32,6 +32,22 @@ export function httpStatus(e: unknown): number {
 			return 409;
 		case 'not_found':
 			return 404;
+		case 'cancelled':
+			return 499;
+		case 'deadline_exceeded':
+			return 504;
+		case 'already_exists':
+			return 409;
+		case 'resource_exhausted':
+			return 429;
+		case 'failed_precondition':
+			return 412;
+		case 'unimplemented':
+			return 501;
+		case 'internal':
+			return 500;
+		case 'data_loss':
+			return 500;
 		default:
 			return 500;
 	}

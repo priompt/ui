@@ -117,17 +117,34 @@ export class PriomptError extends Error {
 
 	/** Whether retrying the same request could plausibly succeed. */
 	get retryable(): boolean {
-		return this.code === 'aborted' || this.code === 'unavailable';
+		return (
+			this.code === 'aborted' ||
+			this.code === 'unavailable' ||
+			this.code === 'resource_exhausted' ||
+			this.code === 'deadline_exceeded' ||
+			this.code === 'cancelled'
+		);
 	}
 }
 
-const CODE_NAMES: Record<number, string> = {
+/** Every canonical gRPC status code, named as the server reports it. */
+export const CODE_NAMES: Record<number, string> = {
+	0: 'ok',
+	1: 'cancelled',
+	2: 'unknown',
 	3: 'invalid_argument',
+	4: 'deadline_exceeded',
 	5: 'not_found',
 	6: 'already_exists',
 	7: 'permission_denied',
+	8: 'resource_exhausted',
+	9: 'failed_precondition',
 	10: 'aborted',
+	11: 'out_of_range',
+	12: 'unimplemented',
+	13: 'internal',
 	14: 'unavailable',
+	15: 'data_loss',
 	16: 'unauthenticated'
 };
 
