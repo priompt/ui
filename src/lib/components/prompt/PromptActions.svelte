@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Pencil, History, FileText, Copy, Check, GitCompare } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
+  import { copyText } from '$lib/utils/clipboard';
 
   let { namespace, branch, filePath, content }: {
     namespace: string;
@@ -10,11 +11,13 @@
   } = $props();
 
   let copied = $state(false);
+  let failed = $state(false);
 
   async function handleCopy() {
-    await navigator.clipboard.writeText(content);
-    copied = true;
-    setTimeout(() => { copied = false; }, 2000);
+    const ok = await copyText(content);
+    copied = ok;
+    failed = !ok;
+    setTimeout(() => { copied = false; failed = false; }, 2000);
   }
 </script>
 
@@ -41,6 +44,9 @@
     {#if copied}
       <Check class="mr-1.5 h-3.5 w-3.5 text-green-400" />
       Copied!
+    {:else if failed}
+      <Copy class="mr-1.5 h-3.5 w-3.5" />
+      Copy failed
     {:else}
       <Copy class="mr-1.5 h-3.5 w-3.5" />
       Copy

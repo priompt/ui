@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { copyText } from '$lib/utils/clipboard';
 	import { Folder, MoreHorizontal } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
@@ -51,7 +52,7 @@
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content align="end">
 			<DropdownMenu.Item onSelect={() => goto(`/${namespace}/tree/${branch}/${file.path}`)}>Open</DropdownMenu.Item>
-			<DropdownMenu.Item onSelect={() => navigator.clipboard.writeText(file.path)}>Copy path</DropdownMenu.Item>
+			<DropdownMenu.Item onSelect={() => void copyText(file.path)}>Copy path</DropdownMenu.Item>
 			<DropdownMenu.Separator />
 			<DropdownMenu.Item class="text-destructive">Delete</DropdownMenu.Item>
 		</DropdownMenu.Content>
