@@ -2,13 +2,14 @@
   import type { Commit } from '$lib/types';
   import DiffViewer from './DiffViewer.svelte';
   import { FileText, Sparkles, Copy, Check } from '@lucide/svelte';
+  import { copyText } from '$lib/utils/clipboard';
 
   let { commit, namespace }: { commit: Commit; namespace: string } = $props();
 
   let copiedHash = $state(false);
 
-  function copyHash() {
-    navigator.clipboard.writeText(commit.hash);
+  async function copyHash() {
+    if (!(await copyText(commit.fullHash ?? commit.hash))) return;
     copiedHash = true;
     setTimeout(() => { copiedHash = false; }, 2000);
   }
