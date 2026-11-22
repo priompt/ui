@@ -34,6 +34,8 @@ export interface CommitSummary {
 }
 
 export interface Commit extends CommitSummary {
+	/** The unabbreviated hash; the API needs it, `hash` is display-only. */
+	fullHash?: string;
 	diff?: string;
 	semanticVerdict?: string;
 	files: string[];

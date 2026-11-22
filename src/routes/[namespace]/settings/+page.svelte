@@ -6,10 +6,20 @@
     Webhook, Bell, Zap, Archive, RotateCcw 
   } from '@lucide/svelte';
   import { mockBranches } from '$lib/mocks';
+  import { copyText } from '$lib/utils/clipboard';
 
   let { data } = $props();
 
   const namespace = $derived(page.params.namespace);
+  let endpointCopied = $state(false);
+  let endpointFailed = $state(false);
+
+  async function copyEndpoint() {
+    const ok = await copyText(servingEndpoint);
+    endpointCopied = ok;
+    endpointFailed = !ok;
+    setTimeout(() => { endpointCopied = false; endpointFailed = false; }, 2000);
+  }
   
   // General
   let description = $state('Prompt namespace managed by the engineering team. Contains production-ready prompts for customer-facing AI interactions.');
@@ -310,7 +320,9 @@
             disabled
             class="flex-1 rounded-md border border-border bg-muted/20 px-3 py-1.5 font-mono text-xs text-muted-foreground"
           />
-          <Button variant="outline" size="sm" onclick={() => navigator.clipboard.writeText(servingEndpoint)}>Copy</Button>
+          <Button variant="outline" size="sm" onclick={copyEndpoint}>
+            {#if endpointCopied}Copied!{:else if endpointFailed}Copy failed{:else}Copy{/if}
+          </Button>
         </div>
       </div>
 
