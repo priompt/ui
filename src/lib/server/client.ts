@@ -14,7 +14,8 @@
  * a leaked token is the whole org. It stays in this process.
  */
 import { createRequire } from 'node:module';
-import { env } from '$env/dynamic/private';
+// Declared in src/env.ts; SvelteKit 3 only exposes declared variables.
+import * as env from '$app/env/private';
 // Bundled as text rather than read from disk: a built server runs from
 // .svelte-kit/ or build/, where a path relative to this module doesn't reach proto/.
 import PROTO_SOURCE from '../../../proto/priompt/v1/prompt.proto?raw';

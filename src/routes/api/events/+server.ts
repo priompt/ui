@@ -16,13 +16,9 @@
  * documented guidance, and it is what keeps a forged event from being actionable.
  */
 import type { RequestHandler } from './$types';
-import { env } from '$env/dynamic/private';
+import * as env from '$app/env/private';
 import { error } from '@sveltejs/kit';
-
-function subject(namespace: string, path: string): string {
-	const clean = path.endsWith('.prompt') ? path.slice(0, -'.prompt'.length) : path;
-	return clean ? `priompt.${namespace}.${clean.replace(/\//g, '.')}` : `priompt.${namespace}.>`;
-}
+import { subjectFor } from '$lib/server/subject';
 
 export const GET: RequestHandler = async ({ url }) => {
 	const natsUrl = env.PRIOMPT_NATS_URL;
@@ -50,14 +46,15 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	const nc = await connect(token ? { servers, token } : { servers });
 	const sc = StringCodec();
-	const sub = nc.subscribe(subject(namespace, path));
+	const subject = subjectFor(namespace, path);
+	const sub = nc.subscribe(subject);
 
 	const stream = new ReadableStream({
 		async start(controller) {
 			const send = (event: string, data: unknown) =>
 				controller.enqueue(new TextEncoder().encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
 
-			send('ready', { subject: subject(namespace, path) });
+			send('ready', { subject });
 			const keepalive = setInterval(() => {
 				try {
 					controller.enqueue(new TextEncoder().encode(': keepalive\n\n'));

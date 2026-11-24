@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { listTree, publish, toURI } from '$lib/server/api';
+import { listTree, publishNew, toURI } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
 import { detectSlots, validateTemplate } from '$lib/utils/slots';
 
@@ -46,7 +46,19 @@ export const actions: Actions = {
 		if (!isLive()) return fail(400, { error: 'No Priompt server configured.', retryable: false, ...back });
 
 		try {
-			await publish(params.namespace, path, content, detectSlots(content), message, branch);
+			const res = await publishNew(params.namespace, path, content, detectSlots(content), message, branch);
+			if (!res.created) {
+				// "Create" must not replace a live prompt. Everything the author typed
+				// comes back so nothing is lost; editing the existing prompt is the
+				// explicit way to change it.
+				return fail(409, {
+					error: `A prompt already exists at ${res.uri}. Pick another name or folder, or edit the existing prompt.`,
+					retryable: false,
+					existingHref: `/${params.namespace}/edit/main/${path}`,
+					uri: res.uri,
+					...back
+				});
+			}
 		} catch (e) {
 			const err = e as PriomptError;
 			return fail(err.retryable ? 409 : 400, {

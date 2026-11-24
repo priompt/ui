@@ -3,7 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { parseBranchAndPath } from '$lib/utils/path';
 import { mockBranches, mockPromptContents } from '$lib/mocks/data';
 import { detectSlots, validateTemplate } from '$lib/utils/slots';
-import { getPrompt, publish, diffDraft, worstVerdict, branches } from '$lib/server/api';
+import { getPrompt, publishIfCurrent, diffDraft, worstVerdict, branches } from '$lib/server/api';
 import { isLive, PriomptError } from '$lib/server/client';
 import { splitRef, httpStatus } from '$lib/server/source';
 
@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		return {
 			namespace: params.namespace, branch: branch.name, filePath: folderPath,
 			fileName: folderPath.split('/').pop() ?? '', content: promptContent.content,
-			branches: mockBranches, live: false
+			branches: mockBranches, bases: {} as Record<string, string>, live: false
 		};
 	}
 
@@ -29,10 +29,18 @@ export const load: PageServerLoad = async ({ params }) => {
 			branches(params.namespace, path).catch(() => [])
 		]);
 		const current = { name: branch, isDefault: branch === 'main', isServing: branch === 'main', lastCommit: p.lastCommit };
+		// The tip of each branch as of this load, i.e. the version the edit starts
+		// from. A save is refused if the branch it targets has moved since. The
+		// open branch uses the commit GetPrompt read the content from, so the base
+		// and the content can never come from different versions.
+		const bases: Record<string, string> = {};
+		for (const b of bs) if (b.lastCommit.fullHash) bases[b.name] = b.lastCommit.fullHash;
+		if (p.commitHash) bases[branch] = p.commitHash;
 		return {
 			namespace: params.namespace, branch, filePath: path,
 			fileName: path.split('/').pop() ?? '', content: p.content,
 			branches: bs.some((b) => b.name === branch) ? bs : [current, ...bs],
+			bases,
 			live: true
 		};
 	} catch (e) {
@@ -67,6 +75,8 @@ export const actions: Actions = {
 		const content = String(form.get('content') ?? '');
 		const message = String(form.get('message') ?? '').trim();
 		const branch = String(form.get('branch') ?? 'main');
+		// The full hash of the target branch's tip when the editor loaded.
+		const base = String(form.get('base') ?? '');
 
 		// The same rules the server enforces, applied before the round trip so the
 		// author gets the specific complaint rather than a generic rejection.
@@ -78,15 +88,32 @@ export const actions: Actions = {
 
 		const { path } = splitRef(params.path);
 		try {
-			const versionHash = await publish(
-				params.namespace, path, content, detectSlots(content), message, branch
+			const res = await publishIfCurrent(
+				params.namespace, path, content, detectSlots(content), message, branch, base
 			);
-			return { saved: true, versionHash };
+			if (res.conflict) {
+				// The branch moved after the editor loaded (another tab, another
+				// user, the CLI or CI). Publishing now would silently replace that
+				// version, so refuse and hand the draft back to be reapplied.
+				return fail(409, {
+					error:
+						`This prompt changed since you opened it: ${branch} has a newer version. ` +
+						'Your edit was not saved. Review the current version, then reapply your changes.',
+					conflict: true,
+					currentHref: `/${params.namespace}/blob/${branch}/${path}`,
+					retryable: false,
+					content,
+					message
+				});
+			}
+			return { saved: true, versionHash: res.versionHash };
 		} catch (e) {
 			const err = e as PriomptError;
-			// ABORTED means someone else published first; the write is safe to retry
-			// once the author has seen what changed. UNAVAILABLE means the change is
-			// stored but the cache could not be cleared — also a retry.
+			// ABORTED is the server's own commit race (two publishes inside one
+			// transaction); an edit made against an old version is caught above, not
+			// here. The write is safe to retry once the author has seen what changed.
+			// UNAVAILABLE means the change is stored but the cache could not be
+			// cleared, which is also a retry.
 			return fail(err.retryable ? 409 : 400, {
 				error: `${err.code}: ${err.message}`,
 				retryable: err.retryable,

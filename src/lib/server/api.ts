@@ -148,7 +148,7 @@ export async function getPrompt(
 	namespace: string,
 	path: string,
 	ref = ''
-): Promise<PromptContent> {
+): Promise<PromptContent & { lastCommit: CommitRef; commitHash: string }> {
 	const uri = toURI(namespace, path);
 	const res = await call<{
 		uri: string; template: string; slots: string[];
@@ -168,7 +168,10 @@ export async function getPrompt(
 		branch: ref || 'main',
 		content: res.template,
 		slots: res.slots ?? [],
-		lastCommit: last
+		lastCommit: last,
+		// The commit this content was read from, in the same response as the
+		// content. Set when fetching by ref; empty for an unversioned HEAD read.
+		commitHash: res.commit_hash ?? ''
 	};
 }
 
@@ -278,6 +281,68 @@ export async function publish(
 		branch
 	});
 	return res.version_hash;
+}
+
+/**
+ * Publish an edit only if the branch is still where the editor found it.
+ *
+ * PublishPrompt commits onto whatever the tip is and has no expected-parent
+ * field, so the server cannot tell an edit made against an old version from one
+ * made against the current one. Compare the tip with the commit the edit
+ * started from first, and refuse when they differ. This is a check followed by
+ * a write, so a publish landing between the two still wins; closing that gap
+ * needs an expected-parent field on PublishPromptRequest (priompt/proto).
+ *
+ * `base` is the full hash of the branch tip the edit started from. Without one
+ * there is nothing to compare against, so the publish goes through unchecked.
+ */
+export type GuardedPublish =
+	| { conflict: false; versionHash: string }
+	| { conflict: true; tip: string };
+
+export async function publishIfCurrent(
+	namespace: string,
+	path: string,
+	template: string,
+	slots: string[],
+	message: string,
+	branch: string,
+	base: string
+): Promise<GuardedPublish> {
+	if (base) {
+		const tip = (await history(namespace, path, branch))[0]?.fullHash ?? '';
+		if (tip !== base) return { conflict: true, tip };
+	}
+	return { conflict: false, versionHash: await publish(namespace, path, template, slots, message, branch) };
+}
+
+/**
+ * Publish a prompt that must not exist yet. PublishPrompt on an existing URI
+ * commits a new version, which is right for an edit and silently destructive
+ * for a "create": the old prompt stops being served. The server has no
+ * create-only flag, so look first. As with publishIfCurrent the check and the
+ * write are separate calls; a create-only flag in priompt/proto would close it.
+ */
+export type CreatedPrompt =
+	| { created: true; versionHash: string }
+	| { created: false; uri: string };
+
+export async function publishNew(
+	namespace: string,
+	path: string,
+	template: string,
+	slots: string[],
+	message: string,
+	branch = 'main'
+): Promise<CreatedPrompt> {
+	const uri = toURI(namespace, path);
+	try {
+		await call('GetPrompt', { uri, ref: '' });
+		return { created: false, uri };
+	} catch (e) {
+		if (!(e instanceof PriomptError) || e.code !== 'not_found') throw e;
+	}
+	return { created: true, versionHash: await publish(namespace, path, template, slots, message, branch) };
 }
 
 export async function createBranch(

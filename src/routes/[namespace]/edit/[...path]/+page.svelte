@@ -4,6 +4,7 @@
   import SemanticVerdict from '$lib/components/history/SemanticVerdict.svelte';
   import { Button } from '$lib/components/ui/button';
   import { Save, Sparkles } from '@lucide/svelte';
+  import { untrack } from 'svelte';
   import { goto } from '$app/navigation';
   import { applyAction, deserialize } from '$app/forms';
   import { mockPromptContents, mockCommits } from '$lib/mocks/data';
@@ -11,13 +12,44 @@
   import { commitMessage } from '$lib/utils/commit';
 
   let { data } = $props();
-  let content = $state(data.content);
+
+  // SvelteKit reuses this component when a client-side navigation lands on
+  // another prompt's editor, so state seeded from `data` once would still belong
+  // to the previous prompt and Save would publish its text onto this one. The
+  // draft is derived from the prompt being edited: it is re-seeded when that
+  // changes and stays assignable, so typing works as usual. It is keyed on the
+  // prompt and branch rather than on `data`, so a background reload of the same
+  // prompt does not discard what the author is typing.
+  const draftKey = $derived(`${data.branch}:${data.filePath}`);
+  let content = $derived.by(() => {
+    void draftKey;
+    return untrack(() => data.content);
+  });
+  // The versions the draft started from. Frozen with the draft, so a background
+  // reload cannot move the base forward under an edit made on the old content.
+  let bases = $derived.by(() => {
+    void draftKey;
+    return untrack(() => data.bases);
+  });
   let showCommitDialog = $state(false);
   let saving = $state(false);
   let saveError = $state<string | null>(null);
+  let conflictHref = $state<string | null>(null);
   let retryable = $state(false);
   let preview = $state<{ changes: unknown[]; verdict: string } | null>(null);
   let previewing = $state(false);
+
+  // Messages, the verdict and the open dialog belong to one prompt as well.
+  $effect.pre(() => {
+    void draftKey;
+    untrack(() => {
+      showCommitDialog = false;
+      saveError = null;
+      conflictHref = null;
+      retryable = false;
+      preview = null;
+    });
+  });
 
   // The same rules the server enforces on write and on serve. Without this the
   // editor happily saved an empty prompt onto the branch marked "serving" — a
@@ -35,6 +67,7 @@
   async function handlePreview() {
     previewing = true;
     saveError = null;
+    conflictHref = null;
     try {
       const result = await post('preview', { content });
       if (result.type === 'success') {
@@ -49,6 +82,7 @@
 
   async function handleCommit(commitData: { message: string; description: string; branch: string }) {
     saveError = null;
+    conflictHref = null;
     retryable = false;
     const message = commitMessage(commitData.message, commitData.description);
 
@@ -74,7 +108,10 @@
       const result = await post('save', {
         content,
         message,
-        branch: commitData.branch
+        branch: commitData.branch,
+        // The tip of that branch when this editor loaded, so the server side can
+        // refuse a save made on top of a version that has since changed.
+        base: bases[commitData.branch] ?? ''
       });
       if (result.type === 'success') {
         showCommitDialog = false;
@@ -83,10 +120,14 @@
       }
       if (result.type === 'failure') {
         saveError = (result.data?.error as string) ?? 'Publish failed.';
-        // ABORTED means someone published first; UNAVAILABLE means the write
-        // landed but the cache did not clear. Both are worth retrying, and the
-        // author should be told which they are looking at.
+        // ABORTED means two publishes raced inside the server; UNAVAILABLE means
+        // the write landed but the cache did not clear. Both are worth retrying,
+        // and the author should be told which they are looking at.
         retryable = Boolean(result.data?.retryable);
+        // A save made on a version that has since changed is refused, not
+        // retried: the draft stays in the editor and this links to what replaced
+        // the version it started from.
+        conflictHref = result.data?.conflict ? ((result.data.currentHref as string) ?? null) : null;
         showCommitDialog = false;
         return;
       }
@@ -133,6 +174,11 @@
   {#if saveError}
     <p role="alert" class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
       {saveError}
+      {#if conflictHref}
+        <a href={conflictHref} target="_blank" rel="noreferrer" class="mt-1 block text-xs underline">
+          Open the current version in a new tab (your draft stays here)
+        </a>
+      {/if}
       {#if retryable}
         <span class="block text-xs opacity-80">
           This one is safe to retry — nothing was lost.

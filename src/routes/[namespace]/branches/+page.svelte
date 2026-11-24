@@ -7,7 +7,7 @@
 	let { data, form } = $props();
 
 	let showCreate = $state(false);
-	let selected = $state(data.path);
+	let selected = $derived(data.path);
 	let promoteFrom = $state('dev');
 	let promoteTo = $state('prod');
 	let mergeFrom = $state('dev');
