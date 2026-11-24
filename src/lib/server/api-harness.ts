@@ -2,7 +2,7 @@
  * Test-only: load `api.ts` under node's test runner, against an in-process gRPC
  * server that speaks the real proto.
  *
- * `api.ts` is written for SvelteKit — it imports `$env/dynamic/private` and
+ * `api.ts` is written for SvelteKit — it imports `$app/env/private` and
  * `$lib/...` and leaves extensions off relative imports — so plain node cannot
  * load it. The module hooks below supply those three things (and Vite's `?raw`
  * import, for the bundled proto), and compile the
@@ -19,6 +19,19 @@ const require = createRequire(import.meta.url);
 const LIB = new URL('../', import.meta.url);
 const PROTO = fileURLToPath(new URL('../../../proto/priompt/v1/prompt.proto', import.meta.url));
 
+// Stand-in for SvelteKit's `$app/env/private`: one named export per variable
+// declared in src/env.ts. They are `let` bindings so `syncEnv` can refresh them
+// from process.env after a test points the client at a new fake server;
+// importers see the new value through ESM live bindings.
+const ENV_VARS = ['PRIOMPT_URL', 'PRIOMPT_HOST', 'PRIOMPT_TOKEN', 'PRIOMPT_TLS', 'PRIOMPT_ORG', 'PRIOMPT_NATS_URL'];
+const ENV_MODULE =
+	ENV_VARS.map((n) => `export let ${n} = process.env.${n};`).join('\n') +
+	`\nglobalThis.__priomptSyncEnv = () => { ${ENV_VARS.map((n) => `${n} = process.env.${n};`).join(' ')} };`;
+
+function syncEnv() {
+	(globalThis as { __priomptSyncEnv?: () => void }).__priomptSyncEnv?.();
+}
+
 let hooked = false;
 
 /** Import `api.ts` with SvelteKit's aliases resolved. */
@@ -27,8 +40,8 @@ export async function loadApi(): Promise<typeof import('./api.ts')> {
 		hooked = true;
 		registerHooks({
 			resolve(specifier, context, next) {
-				if (specifier === '$env/dynamic/private') {
-					return { url: 'data:text/javascript,export const env = process.env;', shortCircuit: true };
+				if (specifier === '$app/env/private') {
+					return { url: `data:text/javascript,${encodeURIComponent(ENV_MODULE)}`, shortCircuit: true };
 				}
 				if (specifier.startsWith('$lib/')) specifier = new URL(specifier.slice(5), LIB).href;
 				if (specifier.endsWith('?raw')) return { url: new URL(specifier, context.parentURL).href, shortCircuit: true };
@@ -100,5 +113,6 @@ export async function fakeServer(handlers: Handlers) {
 		)
 	);
 	process.env.PRIOMPT_HOST = `127.0.0.1:${port}`;
+	syncEnv();
 	return { api, calls, close: () => server.forceShutdown() };
 }

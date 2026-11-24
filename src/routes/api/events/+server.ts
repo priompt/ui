@@ -16,7 +16,7 @@
  * documented guidance, and it is what keeps a forged event from being actionable.
  */
 import type { RequestHandler } from './$types';
-import { env } from '$env/dynamic/private';
+import * as env from '$app/env/private';
 import { error } from '@sveltejs/kit';
 import { subjectFor } from '$lib/server/subject';
 

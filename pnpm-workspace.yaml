@@ -2,3 +2,7 @@ allowBuilds:
   esbuild: true
   # @grpc/proto-loader dependency; its postinstall is a version banner.
   protobufjs: true
+overrides:
+  # @tailwindcss/typography pins postcss-selector-parser 6.0.10, which has a
+  # quadratic-time advisory fixed in 6.1.5. Same major, so the bump is safe.
+  postcss-selector-parser: '>=6.1.5'
