@@ -16,9 +16,18 @@
 
   let message = $state('');
   let description = $state('');
-  let selectedBranch = $state(currentBranch);
   let error = $state('');
-  let saving = $state(false);
+  // Reopening the dialog starts from the branch of the prompt now being edited,
+  // not whatever was picked last time or whatever the first prompt was, and
+  // clears a Committing... left over from a save that failed.
+  let selectedBranch = $derived.by(() => {
+    void open;
+    return currentBranch;
+  });
+  let saving = $derived.by(() => {
+    void open;
+    return false;
+  });
 
   function handleSubmit() {
     error = '';

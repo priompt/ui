@@ -74,3 +74,77 @@ test('history keeps the subject as the message and the description as the body',
 		s.close();
 	}
 });
+
+const tip = (h: string) => ({ commits: [commit(h)] });
+
+test('publishIfCurrent refuses to publish when the branch tip moved since the edit began', async () => {
+	// The bug this guards: the editor published onto the tip whatever it was, so a
+	// change made from the CLI or another tab after the editor loaded was silently
+	// replaced.
+	const s = await fakeServer({ History: () => tip('b'), PublishPrompt: () => ({ version_hash: 'v'.repeat(64) }) });
+	try {
+		const r = await s.api.publishIfCurrent('acme', 'a/b.prompt', 'edit', [], 'msg', 'main', 'a'.repeat(64));
+		assert.deepEqual(r, { conflict: true, tip: 'b'.repeat(64) });
+		assert.deepEqual(s.calls.map((c) => c.method), ['History']);
+		assert.equal(s.calls[0].req.branch, 'main');
+	} finally {
+		s.close();
+	}
+});
+
+test('publishIfCurrent publishes when the tip is still the base', async () => {
+	const s = await fakeServer({ History: () => tip('a'), PublishPrompt: () => ({ version_hash: 'v'.repeat(64) }) });
+	try {
+		const r = await s.api.publishIfCurrent('acme', 'a/b.prompt', 'edit', ['x'], 'msg', 'dev', 'a'.repeat(64));
+		assert.deepEqual(r, { conflict: false, versionHash: 'v'.repeat(64) });
+		assert.deepEqual(s.calls.map((c) => c.method), ['History', 'PublishPrompt']);
+		assert.deepEqual(s.calls[1].req, {
+			uri: 'priompt://acme/a/b', template: 'edit', slots: ['x'], message: 'msg', branch: 'dev'
+		});
+	} finally {
+		s.close();
+	}
+});
+
+test('publishNew does not publish over a prompt that already exists', async () => {
+	// The bug this guards: "New prompt" published straight onto the address, so
+	// reusing a name replaced the live prompt on main with no warning.
+	const s = await fakeServer({
+		GetPrompt: () => ({ uri: 'priompt://acme/onboarding/welcome', template: 'old', slots: [], version_hash: 'v'.repeat(64) }),
+		PublishPrompt: () => ({ version_hash: 'v'.repeat(64) })
+	});
+	try {
+		const r = await s.api.publishNew('acme', 'onboarding/welcome.prompt', 'new', [], 'msg');
+		assert.deepEqual(r, { created: false, uri: 'priompt://acme/onboarding/welcome' });
+		assert.deepEqual(s.calls.map((c) => c.method), ['GetPrompt']);
+	} finally {
+		s.close();
+	}
+});
+
+test('publishNew publishes at a free address', async () => {
+	const s = await fakeServer({
+		GetPrompt: () => { throw { code: 5, details: 'prompt not found' }; },
+		PublishPrompt: () => ({ version_hash: 'v'.repeat(64) })
+	});
+	try {
+		const r = await s.api.publishNew('acme', 'onboarding/fresh.prompt', 'hello', [], 'msg');
+		assert.deepEqual(r, { created: true, versionHash: 'v'.repeat(64) });
+		assert.deepEqual(s.calls.map((c) => c.method), ['GetPrompt', 'PublishPrompt']);
+	} finally {
+		s.close();
+	}
+});
+
+test('publishNew does not publish when the existence check fails for another reason', async () => {
+	const s = await fakeServer({
+		GetPrompt: () => { throw { code: 14, details: 'backend down' }; },
+		PublishPrompt: () => ({ version_hash: 'v'.repeat(64) })
+	});
+	try {
+		await assert.rejects(s.api.publishNew('acme', 'a/b.prompt', 'x', [], 'msg'), { code: 'unavailable' });
+		assert.deepEqual(s.calls.map((c) => c.method), ['GetPrompt']);
+	} finally {
+		s.close();
+	}
+});

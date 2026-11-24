@@ -12,8 +12,10 @@
     comparison: ComparisonSummary;
   } = $props();
 
-  let selectedBase = $state(base);
-  let selectedHead = $state(head);
+  // Follow the route: the comparison in the URL is the source of truth, so the
+  // selectors must change when it does.
+  let selectedBase = $derived(base);
+  let selectedHead = $derived(head);
 
   function handleBaseChange(event: Event) {
     const target = event.target as HTMLSelectElement;

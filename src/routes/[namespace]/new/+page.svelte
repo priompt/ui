@@ -4,10 +4,13 @@
 
   let { data, form } = $props();
 
-  let fileName = $state(form?.fileName ?? '');
-  let folder = $state(form?.folder ?? data.folder ?? '');
-  let content = $state(form?.content ?? '');
-  let message = $state(form?.message ?? '');
+  // Seeded from the returned form (after a failed submit) or the URL, and
+  // re-seeded when either changes, so /new?folder=a then /new?folder=b does
+  // not keep the first folder. Typing overrides until then.
+  let fileName = $derived(form?.fileName ?? '');
+  let folder = $derived(form?.folder ?? data.folder ?? '');
+  let content = $derived(form?.content ?? '');
+  let message = $derived(form?.message ?? '');
 
   const slots = $derived(detectSlots(content));
   const lineCount = $derived(content.split('\n').length);
@@ -30,6 +33,7 @@
   {#if form?.error}
     <p role="alert" class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
       {form.error}
+      {#if 'existingHref' in form}<a href={form.existingHref as string} class="mt-1 block text-xs underline">Edit the existing prompt instead</a>{/if}
       {#if form.retryable}<span class="block text-xs opacity-80">Safe to retry — nothing was lost.</span>{/if}
     </p>
   {/if}

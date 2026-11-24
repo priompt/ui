@@ -2,7 +2,8 @@
 	import { Search } from '@lucide/svelte';
 
 	let { data } = $props();
-	let query = $state(data.query);
+	// Follows the URL, so a new ?q= (from the navbar search, say) updates the input.
+	let query = $derived(data.query);
 </script>
 
 <svelte:head><title>Search — {data.namespace} — Priompt</title></svelte:head>
