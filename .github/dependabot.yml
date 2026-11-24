@@ -1,0 +1,13 @@
+# Keeps pnpm-lock.yaml current so advisories get fixed by a reviewed PR instead
+# of piling up. Minor and patch updates arrive as one grouped PR per week;
+# majors are opened separately because they need a human to read the changelog.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]

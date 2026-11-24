@@ -22,6 +22,17 @@ jobs:
       - run: pnpm test
       - run: pnpm build
 
+  # Fails when a production dependency has a known high or critical advisory, so
+  # a stale lockfile shows up on the next PR instead of going unnoticed.
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.27.0
+      - run: pnpm audit --prod --audit-level high
+
   # The UI vendors the PromptService contract; fail when it drifts from the
   # proto repo instead of finding out from a broken RPC.
   proto:
