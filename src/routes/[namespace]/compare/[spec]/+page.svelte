@@ -27,6 +27,7 @@
 		branches={data.branches}
 		namespace={data.namespace}
 		comparison={data.comparison}
+		path={data.path}
 	/>
 
 	<!-- Not just what differs between the branches, but what the difference means. -->

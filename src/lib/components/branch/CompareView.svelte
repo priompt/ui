@@ -4,12 +4,14 @@
   import { GitCompare, FileText } from '@lucide/svelte';
   import type { Branch, ComparisonSummary } from '$lib/types';
 
-  let { base, head, branches, namespace, comparison }: {
+  let { base, head, branches, namespace, comparison, path = '' }: {
     base: string;
     head: string;
     branches: Branch[];
     namespace: string;
     comparison: ComparisonSummary;
+    /** The prompt being compared. Live comparisons are per prompt, so it has to survive a change of branch. */
+    path?: string;
   } = $props();
 
   // Follow the route: the comparison in the URL is the source of truth, so the
@@ -17,16 +19,19 @@
   let selectedBase = $derived(base);
   let selectedHead = $derived(head);
 
+  function go() {
+    const qs = path ? `?path=${encodeURIComponent(path)}` : '';
+    goto(`/${namespace}/compare/${selectedBase}...${selectedHead}${qs}`);
+  }
+
   function handleBaseChange(event: Event) {
-    const target = event.target as HTMLSelectElement;
-    selectedBase = target.value;
-    goto(`/${namespace}/compare/${selectedBase}...${selectedHead}`);
+    selectedBase = (event.target as HTMLSelectElement).value;
+    go();
   }
 
   function handleHeadChange(event: Event) {
-    const target = event.target as HTMLSelectElement;
-    selectedHead = target.value;
-    goto(`/${namespace}/compare/${selectedBase}...${selectedHead}`);
+    selectedHead = (event.target as HTMLSelectElement).value;
+    go();
   }
 </script>
 
