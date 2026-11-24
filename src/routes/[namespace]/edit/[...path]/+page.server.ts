@@ -30,10 +30,12 @@ export const load: PageServerLoad = async ({ params }) => {
 		]);
 		const current = { name: branch, isDefault: branch === 'main', isServing: branch === 'main', lastCommit: p.lastCommit };
 		// The tip of each branch as of this load, i.e. the version the edit starts
-		// from. A save is refused if the branch it targets has moved since.
+		// from. A save is refused if the branch it targets has moved since. The
+		// open branch uses the commit GetPrompt read the content from, so the base
+		// and the content can never come from different versions.
 		const bases: Record<string, string> = {};
 		for (const b of bs) if (b.lastCommit.fullHash) bases[b.name] = b.lastCommit.fullHash;
-		if (p.lastCommit.fullHash) bases[branch] = p.lastCommit.fullHash;
+		if (p.commitHash) bases[branch] = p.commitHash;
 		return {
 			namespace: params.namespace, branch, filePath: path,
 			fileName: path.split('/').pop() ?? '', content: p.content,

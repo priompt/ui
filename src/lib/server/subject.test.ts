@@ -43,3 +43,7 @@ test('subjectFor picks the prompt subject with a path and the org subject withou
 test('a bare .prompt path falls back to the org subject', () => {
 	assert.equal(subjectFor('acme', '.prompt'), 'priompt.acme.>');
 });
+
+test('subjectFor strips the .prompt suffix once, like the server sees the URI', () => {
+	assert.equal(subjectFor('acme', 'x.prompt.prompt'), 'priompt.acme.x%2Eprompt');
+});

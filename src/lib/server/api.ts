@@ -148,7 +148,7 @@ export async function getPrompt(
 	namespace: string,
 	path: string,
 	ref = ''
-): Promise<PromptContent & { lastCommit: CommitRef }> {
+): Promise<PromptContent & { lastCommit: CommitRef; commitHash: string }> {
 	const uri = toURI(namespace, path);
 	const res = await call<{
 		uri: string; template: string; slots: string[];
@@ -168,7 +168,10 @@ export async function getPrompt(
 		branch: ref || 'main',
 		content: res.template,
 		slots: res.slots ?? [],
-		lastCommit: last
+		lastCommit: last,
+		// The commit this content was read from, in the same response as the
+		// content. Set when fetching by ref; empty for an unversioned HEAD read.
+		commitHash: res.commit_hash ?? ''
 	};
 }
 

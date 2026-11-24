@@ -25,6 +25,12 @@
     void draftKey;
     return untrack(() => data.content);
   });
+  // The versions the draft started from. Frozen with the draft, so a background
+  // reload cannot move the base forward under an edit made on the old content.
+  let bases = $derived.by(() => {
+    void draftKey;
+    return untrack(() => data.bases);
+  });
   let showCommitDialog = $state(false);
   let saving = $state(false);
   let saveError = $state<string | null>(null);
@@ -105,7 +111,7 @@
         branch: commitData.branch,
         // The tip of that branch when this editor loaded, so the server side can
         // refuse a save made on top of a version that has since changed.
-        base: data.bases[commitData.branch] ?? ''
+        base: bases[commitData.branch] ?? ''
       });
       if (result.type === 'success') {
         showCommitDialog = false;

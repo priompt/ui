@@ -148,3 +148,18 @@ test('publishNew does not publish when the existence check fails for another rea
 		s.close();
 	}
 });
+
+test('getPrompt returns the commit the content was read from', async () => {
+	// The editor's conflict base must come from the same response as the content;
+	// a second History read could see a newer tip and let a stale save through.
+	const s = await fakeServer({
+		GetPrompt: () => ({ uri: 'priompt://acme/a/b', template: 't', slots: [], version_hash: 'v'.repeat(64), commit_hash: 'c'.repeat(64) }),
+		History: () => ({ commits: [commit('d')] })
+	});
+	try {
+		const p = await s.api.getPrompt('acme', 'a/b.prompt', 'main');
+		assert.equal(p.commitHash, 'c'.repeat(64));
+	} finally {
+		s.close();
+	}
+});

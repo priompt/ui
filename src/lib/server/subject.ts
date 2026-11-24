@@ -43,6 +43,8 @@ export function orgSubject(namespace: string): string {
 
 /** The subject for a page: one prompt when it has a path, else the whole org. */
 export function subjectFor(namespace: string, path: string): string {
+	// promptSubject strips the suffix itself; strip it only to test for an empty
+	// path, so `x.prompt.prompt` keeps its inner `.prompt` like the server does.
 	const clean = path.endsWith(SUFFIX) ? path.slice(0, -SUFFIX.length) : path;
-	return clean ? promptSubject(namespace, clean) : orgSubject(namespace);
+	return clean ? promptSubject(namespace, path) : orgSubject(namespace);
 }
